@@ -1,0 +1,69 @@
+---
+- name: Flux - Fetch release data from GitHub API
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/fluxcd/flux2/releases/latest"
+    method: GET
+    return_content: true
+  register: rke2_tools_flux_latest_version
+
+- name: Check if flux installed
+  ansible.builtin.stat:
+    path: '/usr/local/bin/flux'
+  register: rke2_tools_flux_state
+
+- name: Check current installed version of flux  # noqa risky-shell-pipe
+  ansible.builtin.shell: |
+    set -o pipefail
+    flux --version | awk '{ print $3}'
+  register: rke2_tools_flux_gathered_version2
+  changed_when: false
+  when: rke2_tools_flux_state.stat.exists
+
+- name: Install flux  # noqa command-instead-of-module no-changed-when
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -s https://fluxcd.io/install.sh | bash
+  vars:
+    rke2_flux_gathered_version: "{{ rke2_tools_flux_gathered_version2.stdout }}"
+    rke2_flux_latest_version: "{{ rke2_tools_flux_latest_version.json.tag_name | replace('v', '') }}"
+  when:
+    - (not rke2_tools_flux_state.stat.exists) or
+      (rke2_flux_latest_version is version(rke2_flux_gathered_version, '>'))
+
+- name: Flux Check
+  when: rke2_tools_flux_state.stat.exists
+  block:
+    - name: Flux Check
+      ansible.builtin.shell:
+        cmd: 'flux check'
+        executable: /bin/bash
+      environment:
+        KUBECONFIG: "{{ rke2_kubeconfig }}"
+      changed_when: false
+      register: rke2_flux_check
+
+    - name: Set fact rke2_flux_bootstrap to false when already bootstrapped
+      ansible.builtin.set_fact:
+        rke2_flux_bootstrap: false
+      when: rke2_flux_check.stderr_lines is search('all checks passed')
+
+- name: Bootstrap fluxcd
+  when: rke2_flux_bootstrap
+  block:
+    - name: Create bootstrap file
+      ansible.builtin.template:
+        src: 'fluxcd-bootstrap.sh.j2'
+        dest: '/tmp/fluxcd-bootstrap.sh'
+        mode: '0755'
+
+    - name: Run bootstrap file  # noqa no-changed-when
+      ansible.builtin.shell:
+        cmd: '/bin/bash /tmp/fluxcd-bootstrap.sh'
+        executable: /bin/bash
+      environment:
+        KUBECONFIG: "{{ rke2_kubeconfig }}"
+
+    - name: Remove bootstrap file
+      ansible.builtin.file:
+        path: /tmp/fluxcd-bootstrap.sh
+        state: absent

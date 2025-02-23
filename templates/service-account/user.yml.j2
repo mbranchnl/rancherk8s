@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-{{ rke2_service_account }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sa-{{ rke2_service_account }}-token
+  annotations:
+    kubernetes.io/service-account.name: sa-{{ rke2_service_account }}
+type: kubernetes.io/service-account-token
+

@@ -1,0 +1,38 @@
+---
+- name: End the play for not compatible hosts
+  ansible.builtin.meta: end_play
+  when:
+    - (ansible_os_family != 'RedHat')
+    - ansible_distribution_major_version|int >= 9
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Check for rke2 binary
+  ansible.builtin.stat:
+    path: /usr/bin/rke2
+  register: rke2_bin
+
+- name: Add node to group rke2
+  ansible.builtin.add_host:
+    name: "{{ item | string }}"
+    groups: rke2
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: Display groups the host is part of to check if its member of RKE2
+  ansible.builtin.debug:
+    msg: "Host {{ inventory_hostname }} is part of group(s): {{ group_names | join(', ') }}"
+
+- name: Create dynamic groups
+  ansible.builtin.include_tasks: pre_flight/groups.yml
+
+- name: Check existing and defined verisons
+  ansible.builtin.include_tasks: pre_flight/versions.yml
+  when:
+    - inventory_hostname in groups['rke2_server_primary']
+
+- name: Check for existing node-token
+  ansible.builtin.include_tasks: pre_flight/tokens.yml
+  when:
+    - inventory_hostname in groups['rke2_server_primary']

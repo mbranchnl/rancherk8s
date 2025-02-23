@@ -1,0 +1,61 @@
+---
+- name: Append kubectl binary dir to global PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/k8s_exports.sh
+    line: "{{ item }}"
+    mode: '0644'
+    create: true
+  loop:
+    - 'export PATH="$PATH:/var/lib/rancher/rke2/bin"'
+    - 'export KUBECONFIG={{ rke2_kubeconfig }}'
+
+- name: "Create rke2_kubeconfig dir"
+  ansible.builtin.file:
+    path: "{{ rke2_kubeconfig | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Start installation RKE2 server node
+  ansible.builtin.include_tasks: install/server.yml
+  when:
+    - "'rke2_server_primary' in group_names"
+
+- name: Start installation RKE2 agent node
+  ansible.builtin.include_tasks: install/agent.yml
+  loop: "{{ groups.rke2_agent }}"
+  when:
+    - "'rke2_agent' in group_names"
+    - hostvars[item].inventory_hostname == inventory_hostname
+
+- name: Get node-token for cluster nodes
+  when: inventory_hostname in groups['rke2_server_primary']
+  block:
+    - name: Wait for node-token
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/rke2/server/node-token
+        timeout: 30
+
+    - name: Read and register node-token from first server
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/rke2/server/node-token
+      register: node_token
+
+- name: Store node-token
+  ansible.builtin.set_fact:
+    rke2_token: "{{ hostvars[groups['rke2_server_primary'][0]]['node_token'].content | b64decode | regex_replace('\n', '') }}"
+
+- name: Create cluster with all server-nodes
+  ansible.builtin.include_tasks: install/cluster.yml
+  loop: "{{ groups.rke2_server_secondary }}"
+  when:
+    - "'rke2_server_secondary' in group_names"
+    - hostvars[item].inventory_hostname == inventory_hostname
+
+- name: Set RKE2 login-file permissions
+  ansible.builtin.copy:
+    src: "/etc/rancher/rke2/rke2.yaml"
+    dest: "{{ rke2_kubeconfig }}"
+    mode: '0644'
+    remote_src: true

@@ -1,0 +1,14 @@
+---
+- name: Remove kube-proxy manifest
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/agent/pod-manifests/kube-proxy.yaml
+    state: absent
+
+- name: Loop over defined cilium values
+  ansible.builtin.template:
+    src: "cni/{{ item }}.j2"
+    dest: "/var/lib/rancher/rke2/server/manifests/{{ item }}"
+    mode: '0644'
+  loop:
+    - rke2-cilium-base.yaml
+  notify: Restart RKE2 server

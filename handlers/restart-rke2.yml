@@ -1,0 +1,10 @@
+---
+- name: Restart rke2-server
+  ansible.builtin.systemd:
+    name: rke2-server
+    state: restarted
+
+- name: Wait for kubernetes API to become available on server
+  ansible.builtin.wait_for:
+    port: 6443
+    timeout: 300

@@ -1,0 +1,41 @@
+---
+- name: Download install.sh
+  ansible.builtin.get_url:
+    url: https://get.rke2.io/
+    dest: "{{ rke2_artifact_path }}/install.sh"
+    mode: '0755'
+
+- name: Run RKE2 installer # noqa command-instead-of-shell no-changed-when
+  ansible.builtin.shell:
+    cmd: "{{ rke2_artifact_path }}/install.sh"
+  environment:
+    INSTALL_RKE2_VERSION: '{{ rke2_version }}'
+    INSTALL_RKE2_TYPE: server
+
+- name: Start and enable RKE2 service on primary node only
+  ansible.builtin.service:
+    name: rke2-server
+    enabled: true
+    state: started
+  when: inventory_hostname in groups['rke2_server_primary']
+
+- name: Disable automated updates of RKE2
+  ansible.builtin.replace:
+    path: /etc/yum.repos.d/rancher-rke2.repo
+    regexp: '^enabled=1'
+    replace: enabled=0
+
+- name: Wait for kubernetes API to become available on server
+  ansible.builtin.wait_for:
+    port: 6443
+    timeout: 600
+    delay: 10
+  register: rke2_api_check
+  when:
+    - inventory_hostname in groups['rke2_server_primary']
+
+- name: "Can't connect to rke2-api end play"
+  ansible.builtin.meta: end_play
+  when:
+    - inventory_hostname in groups['rke2_server_primary']
+    - rke2_api_check.failed

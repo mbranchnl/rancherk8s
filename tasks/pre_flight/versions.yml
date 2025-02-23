@@ -1,0 +1,20 @@
+---
+- name: Check versions
+  block:
+    - name: Check if rke2 installed and register installed version  # noqa risky-shell-pipe
+      ansible.builtin.shell: |
+        set -o pipefail
+        rke2 -v | grep rke2 | awk '{print $3}'
+      register: gathered_installed_rke2_version
+      changed_when: false
+
+    - name: Set fact for installed and defined versions
+      ansible.builtin.set_fact:
+        rke2_version_installed: "{{ gathered_installed_rke2_version.stdout }}"
+        rke2_version_defined: "{{ rke2_version }}"
+  when:
+    - rke2_bin.stat.exists
+
+- name: End play when rke2_version_installed is newer than rke2_version_defined
+  ansible.builtin.meta: end_play
+  when: rke2_version_defined is version(rke2_version_installed, '<')

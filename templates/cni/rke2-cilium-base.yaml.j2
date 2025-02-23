@@ -1,0 +1,29 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-cilium
+  namespace: kube-system
+spec:
+  valuesContent: |-
+{% if rke2_loadbalancer_ip is defined%}
+    k8sServiceHost: {{ rke2_loadbalancer_ip }} # K8s loadbalancer IP for HA
+{% else %}
+    k8sServiceHost: 127.0.0.1
+{% endif %}
+    k8sServicePort: 6443
+    kubeProxyReplacement: true
+    bgp:
+      enabled: false
+    hubble:
+      enabled: true
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+    image:
+      pullPolicy: IfNotPresent
+    operator:
+      replicas: {{ groups['rke2_server'] | length | int }}
+    l2announcements:
+      enabled: true

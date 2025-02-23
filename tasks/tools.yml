@@ -1,0 +1,3 @@
+---
+- name: Install tooling for maintaining the clusters
+  ansible.builtin.include_tasks: tools/fluxcd.yml

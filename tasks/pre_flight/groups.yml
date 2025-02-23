@@ -1,0 +1,44 @@
+---
+# Created block because include_tasks doesn't allow delegate_to
+- name: Organize nodes in the correct groups
+  block:
+    - name: Add node to group server when rke2_node_type defined is server
+      ansible.builtin.add_host:
+        name: "{{ item | string }}"
+        groups: rke2_server
+      when: rke2_node_type == "server"
+      loop: "{{ groups.rke2 }}"
+      changed_when: false
+
+    - name: Add node to group server when rke2_node_type is agent
+      ansible.builtin.add_host:
+        name: "{{ item | string }}"
+        groups: rke2_agent
+      when: rke2_node_type == "agent"
+      loop: "{{ groups.rke2 }}"
+      changed_when: false
+
+    - name: Add first servernode to primary group
+      ansible.builtin.add_host:
+        name: "{{ hostvars[groups['rke2_server'][0]].inventory_hostname | string }}"
+        groups: rke2_server_primary
+      when: hostvars[groups['rke2_server'][0]]
+      changed_when: false
+
+    - name: Add other servers to secondary group when more than 1 server
+      ansible.builtin.add_host:
+        name: "{{ hostvars[item].inventory_hostname | string }}"
+        groups: rke2_server_secondary
+      loop: "{{ groups.rke2_server[1:] }}"
+      changed_when: false
+
+    - name: Display groups the host is part of
+      ansible.builtin.debug:
+        msg: "Host {{ inventory_hostname }} is part of group(s): {{ group_names | join(', ') }}"
+
+    - name: End play if odd amount of rke2_servers is provisioned
+      ansible.builtin.meta: end_host
+      when:
+        - "groups['rke2_server'] | length | int is even"
+
+  delegate_to: "localhost"

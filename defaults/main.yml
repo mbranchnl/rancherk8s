@@ -1,0 +1,48 @@
+---
+# defaults file for rke2
+rke2_version: 'v1.31.3+rke2r1'
+
+rke2_node_type: server
+rke2_service_account: admin
+
+rke2_kubeconfig: "/opt/rke2/rke2.yaml"
+
+rke2_version_installed: "{{ rke2_version }}"
+rke2_version_defined: "{{ rke2_version }}"
+rke2_major_version: "{{ rke2_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1') }}"
+
+rke2_artifact_path: /tmp/
+
+rke2_cni: cilium
+# rke2_dualstack: false # allow ipv6
+
+rke2_allow_upgrade: true
+# rke2_auto_upgrade: false
+# rke2_auto_upgrade_grace_period: 45
+
+rke2_backup_schedule: "0 8,20 * * *"
+rke2_backup_retention: "14"
+
+# Tooling like Flux
+rke2_install_tools: true
+
+rke2_flux_bootstrap: true
+rke2_flux_bootstrap_provider: 'github'
+rke2_flux_bootstrap_token:
+rke2_flux_bootstrap_owner:
+rke2_flux_bootstrap_repo: 'fleet-infra'
+rke2_flux_bootstrap_branch: 'main'
+rke2_flux_bootstrap_path: './clusters/my-cluster'
+rke2_flux_bootstrap_type: 'personal'
+
+# Loadbalancer IP for K8s API
+# rke2_loadbalancer_ip: "{{ hostvars[groups['rke2_server_primary'][0]].ansible_default_ipv4.address }}"
+
+# # Timings, fill in in seconds
+# # Defaults are based on 'Medium Update and Average Reaction'
+# # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md
+# default_not_ready_toleration_seconds: 60
+# default_unreachable_toleration_seconds: 60
+# node_monitor_period: 5
+# node_monitor_grace_period: 120
+# node_status_update_frequency: 20

@@ -1,0 +1,31 @@
+---
+- name: Download install.sh
+  ansible.builtin.get_url:
+    url: https://get.rke2.io/
+    dest: "{{ rke2_artifact_path }}/install.sh"
+    mode: '0755'
+
+- name: Run RKE2 installer # noqa command-instead-of-shell no-changed-when
+  ansible.builtin.shell:
+    cmd: "{{ rke2_artifact_path }}/install.sh"
+  environment:
+    INSTALL_RKE2_VERSION: '{{ rke2_version }}'
+    INSTALL_RKE2_TYPE: agent
+
+- name: Enable RKE2 service
+  ansible.builtin.service:
+    name: rke2-agent
+    enabled: true
+    state: started
+
+- name: Create RKE2 configuration directory
+  ansible.builtin.file:
+    path: "/etc/rancher/rke2/"
+    state: directory
+    mode: 0755
+
+- name: Set RKE2 config-file
+  ansible.builtin.template:
+    src: rke2_config.yml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    mode: 0644

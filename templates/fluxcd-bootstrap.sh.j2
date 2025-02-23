@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export GITHUB_TOKEN={{ rke2_flux_bootstrap_token }}
+
+{% set command -%}
+flux bootstrap {{ rke2_flux_bootstrap_provider }} \
+    --owner={{ rke2_flux_bootstrap_owner }} \
+    --repository={{ rke2_flux_bootstrap_repo }} \
+    --branch={{ rke2_flux_bootstrap_branch }} \
+    --path={{ rke2_flux_bootstrap_path }} \
+    --{{ rke2_flux_bootstrap_type }}
+{%- endset -%}
+{{ command | replace('\\\n    ', '') }}

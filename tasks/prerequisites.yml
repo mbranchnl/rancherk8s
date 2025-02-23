@@ -1,0 +1,63 @@
+---
+- name: Install dependencies
+  ansible.builtin.package:
+    name:
+      - tar
+      - python3-pip
+    state: present
+
+- name: Install pip packages  # noqa package-latest
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - openshift
+    - kubernetes
+    - oauthlib
+
+- name: Add /usr/local/bin to sudo secure_path
+  ansible.builtin.lineinfile:
+    line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
+    regexp: "Defaults(\\s)*secure_path(\\s)*="
+    state: "present"
+    insertafter: EOF
+    path: /etc/sudoers
+    validate: 'visudo -cf %s'
+
+- name: Check if NetworkManager is used
+  ansible.builtin.command: nmcli -t -f RUNNING general
+  register: nmcli_output
+  ignore_errors: true
+  changed_when: false
+
+- name: "Configure NetworkManager so that it ignores CNI's"
+  when: nmcli_output.stdout == 'running'
+  block:
+    - name: Ensure /etc/NetworkManager/conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/NetworkManager/conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Copy configuration
+      ansible.builtin.copy:
+        src: rke2-canal.conf
+        dest: /etc/NetworkManager/conf.d/00-rke2-canal.conf
+        mode: '0644'
+      register: rke2_networkmanager_cni
+
+    - name: Reload NetworkManager  # noqa no-handler
+      ansible.builtin.systemd:
+        name: NetworkManager
+        state: reloaded
+      when: rke2_networkmanager_cni.changed
+
+    - name: Disable nm-cloud services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - nm-cloud-setup.service
+        - nm-cloud-setup.timer
+      when: "'nm-cloud-setup' in services"
