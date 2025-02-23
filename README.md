@@ -17,13 +17,26 @@ Role Variables
 
 | Variable                      | Required | Default        | Description                                                                  |
 |------------------------------|----------|----------------|------------------------------------------------------------------------------|
-| rke2_version                 | yes      | v1.19.5+rke22 | RKE2 version to install/upgrade to                                           |
-| server_args                  | no       | ""            | Additional server node parameters (e.g., "--tls-san=10.0.0.1")               |
-| agent_args                   | no       | ""            | Additional agent node parameters                                              |
-| rke2_tls_san_enabled        | no       | false         | Enable additional Subject Alternative Names (SANs)                           |
-| tls_additional_san          | no       | ""            | Comma-separated list of additional SANs (IPs or hostnames)                   |
-| rke2_auto_upgrade           | yes      | false         | Enable automatic upgrades when a newer version is specified                  |
-| rke2_auto_upgrade_grace_period | yes    | 60           | Wait period (seconds) for API health check after upgrade                     |
+| rke2_version                 | yes      | v1.31.3+rke2r1| RKE2 version to install/upgrade to                                           |
+| rke2_node_type              | no       | server        | Node type: 'server' or 'agent'                                               |
+| rke2_service_account        | no       | admin         | Name of the service account to create                                        |
+| rke2_kubeconfig             | no       | /opt/rke2/rke2.yaml | Path to kubeconfig file                                               |
+| rke2_artifact_path          | no       | /tmp/         | Path for temporary artifacts                                                 |
+| rke2_cni                    | no       | cilium        | CNI plugin to use (e.g., 'cilium', 'canal')                                 |
+| rke2_allow_upgrade          | no       | true          | Allow cluster upgrades                                                       |
+| rke2_auto_upgrade           | no       | false         | Enable automatic upgrades when a newer version is specified                  |
+| rke2_auto_upgrade_grace_period | no    | 45           | Wait period (seconds) for API health check after upgrade                     |
+| rke2_backup_schedule        | no       | "0 8,20 * * *"| Cron schedule for etcd backups                                              |
+| rke2_backup_retention       | no       | "14"          | Number of days to retain backups                                            |
+| rke2_install_tools          | no       | true          | Install additional tools (like Flux)                                         |
+| rke2_flux_bootstrap         | no       | true          | Enable Flux GitOps toolkit installation                                      |
+| rke2_flux_bootstrap_provider| no       | github        | Git provider for Flux                                                        |
+| rke2_flux_bootstrap_token   | no       | -             | Authentication token for Git provider                                        |
+| rke2_flux_bootstrap_owner   | no       | -             | Repository owner for Flux                                                    |
+| rke2_flux_bootstrap_repo    | no       | fleet-infra   | Repository name for Flux                                                     |
+| rke2_flux_bootstrap_branch  | no       | main          | Git branch to use                                                            |
+| rke2_flux_bootstrap_path    | no       | ./clusters/my-cluster | Path within repository for cluster configuration                     |
+| rke2_flux_bootstrap_type    | no       | personal      | Repository type ('personal' or 'organization')                               |
 
 
 Usage Examples
