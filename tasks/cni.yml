@@ -12,3 +12,12 @@
   loop:
     - rke2-cilium-base.yaml
   notify: Restart RKE2 server
+
+- name: Download Gateway API CRD files
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/{{ gateway_api_version }}/config/crd/{{ item.path }}/{{ item.name }}"
+    dest: "{{ manifest_dir }}{{ item.name }}"
+    mode: '0644'
+    force: true
+  loop: "{{ gateway_api_crds }}"
+  notify: Restart RKE2 server
