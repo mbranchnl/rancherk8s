@@ -53,17 +53,12 @@
     - name: Create bootstrap file
       ansible.builtin.template:
         src: 'fluxcd-bootstrap.sh.j2'
-        dest: '/tmp/fluxcd-bootstrap.sh'
+        dest: '/opt/fluxcd-bootstrap.sh'
         mode: '0755'
 
     - name: Run bootstrap file  # noqa no-changed-when
       ansible.builtin.shell:
-        cmd: '/bin/bash /tmp/fluxcd-bootstrap.sh'
+        cmd: '/bin/bash /opt/fluxcd-bootstrap.sh'
         executable: /bin/bash
       environment:
         KUBECONFIG: "{{ rke2_kubeconfig }}"
-
-    - name: Remove bootstrap file
-      ansible.builtin.file:
-        path: /tmp/fluxcd-bootstrap.sh
-        state: absent

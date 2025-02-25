@@ -14,6 +14,17 @@ rke2_major_version: "{{ rke2_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1')
 rke2_artifact_path: /tmp/
 
 rke2_cni: cilium
+
+rke2_cilium_gateway_api_version: v0.5.1
+rke2_cilium_gateway_api_crds:
+  - name: gateway.networking.k8s.io_gatewayclasses.yaml
+    path: standard
+  - name: gateway.networking.k8s.io_gateways.yaml
+    path: standard
+  - name: gateway.networking.k8s.io_httproutes.yaml
+    path: standard
+  - name: gateway.networking.k8s.io_referencegrants.yaml
+    path: experimental
 # rke2_dualstack: false # allow ipv6
 
 rke2_allow_upgrade: true
@@ -27,6 +38,7 @@ rke2_backup_retention: "14"
 rke2_install_tools: true
 
 rke2_flux_bootstrap: true
+rke2_flux_interval: '5m'
 rke2_flux_bootstrap_provider: 'github'
 rke2_flux_bootstrap_token:
 rke2_flux_bootstrap_owner:
