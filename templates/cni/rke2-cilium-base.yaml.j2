@@ -27,3 +27,9 @@ spec:
       replicas: {{ groups['rke2_server'] | length | int }}
     l2announcements:
       enabled: true
+    gatewayAPI:
+      enabled: true
+    ingressController:
+      enabled: true
+    ingressController:
+      default: true
