@@ -1,0 +1,5 @@
+- name: Install k9s
+  ansible.builtin.dnf:
+    name: 'https://github.com/derailed/k9s/releases/download/v0.40.5/k9s_linux_amd64.rpm'
+    state: present
+    disable_gpg_check: true
