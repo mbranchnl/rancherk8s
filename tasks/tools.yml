@@ -1,3 +1,5 @@
----
 - name: Install tooling for maintaining the clusters
   ansible.builtin.include_tasks: tools/fluxcd.yml
+
+- name: Install k9s
+  ansible.builtin.include_tasks: tools/k9s.yml

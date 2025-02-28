@@ -31,7 +31,9 @@
       (rke2_flux_latest_version is version(rke2_flux_gathered_version, '>'))
 
 - name: Flux Check
-  when: rke2_tools_flux_state.stat.exists
+  when:
+    - rke2_flux_bootstrap
+    - rke2_tools_flux_state.stat.exists
   block:
     - name: Flux Check
       ansible.builtin.shell:

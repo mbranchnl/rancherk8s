@@ -15,16 +15,6 @@ rke2_artifact_path: /tmp/
 
 rke2_cni: cilium
 
-rke2_gateway_api_version: v0.5.1
-rke2_gateway_api_crds:
-  - name: gateway.networking.k8s.io_gatewayclasses.yaml
-    path: standard
-  - name: gateway.networking.k8s.io_gateways.yaml
-    path: standard
-  - name: gateway.networking.k8s.io_httproutes.yaml
-    path: standard
-  - name: gateway.networking.k8s.io_referencegrants.yaml
-    path: experimental
 # rke2_dualstack: false # allow ipv6
 
 rke2_allow_upgrade: true
