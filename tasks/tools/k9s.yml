@@ -3,3 +3,12 @@
     name: 'https://github.com/derailed/k9s/releases/download/v0.40.5/k9s_linux_amd64.rpm'
     state: present
     disable_gpg_check: true
+
+- name: User xterm-256color for k9s
+  ansible.builtin.copy:
+    dest: /etc/profile.d/k9s.sh
+    content: |
+      alias k9s='TERM=xterm-256color k9s'
+    mode: '0644'
+    owner: root
+    group: root
