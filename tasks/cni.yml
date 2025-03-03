@@ -4,6 +4,13 @@
     path: /var/lib/rancher/rke2/agent/pod-manifests/kube-proxy.yaml
     state: absent
 
+- name: Download Gateway API
+  ansible.builtin.get_url:
+    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
+    dest: "/var/lib/rancher/rke2/server/manifests/gateway-api.yaml"
+    mode: '0644'
+  notify: Restart RKE2 server
+
 - name: Loop over defined cilium values
   ansible.builtin.template:
     src: "cni/{{ item }}.j2"
@@ -11,11 +18,4 @@
     mode: '0644'
   loop:
     - rke2-cilium-base.yaml
-  notify: Restart RKE2 server
-
-- name: Download Gateway API
-  ansible.builtin.get_url:
-    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
-    dest: "/var/lib/rancher/rke2/server/manifests/gateway-api.yaml"
-    mode: '0644'
   notify: Restart RKE2 server
