@@ -1,3 +1,4 @@
 .ansible
 .vscode
 files/fluxcd-bootstrap.sh
+files/kubeconfig.yml
