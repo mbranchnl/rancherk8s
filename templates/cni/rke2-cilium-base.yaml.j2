@@ -27,10 +27,24 @@ spec:
       replicas: {{ groups['rke2_server'] | length | int }}
     l2announcements:
       enabled: true
+{% if rke2_cni_gateway %}
     gatewayAPI:
       enabled: true
-    ingressController:
       default: true
-      enabled: true
       hostNetwork:
         enabled: true
+    hostServices:
+      enabled: true
+    envoy:
+      enabled: true
+      securityContext:
+        capabilities:
+          keepCapNetBindService: true
+          envoy:
+            - BPF
+            - CAP_NET_ADMIN
+            - CAP_SYS_ADMIN
+            - NET_ADMIN
+            - NET_BIND_SERVICE
+            - SYS_ADMIN
+{% endif %}

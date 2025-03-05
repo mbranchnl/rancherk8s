@@ -6,16 +6,23 @@
 
 - name: Download Gateway API
   ansible.builtin.get_url:
-    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
+    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ rke2_cni_gateway_crd_version }}/{{ rke2_cni_gateway_crd_release }}-install.yaml"
     dest: "/var/lib/rancher/rke2/server/manifests/gateway-api.yaml"
     mode: '0644'
   notify: Restart RKE2 server
+
+- name: "Install Gateway API CRD's"
+  kubernetes.core.k8s:
+    state: present
+    src: '/var/lib/rancher/rke2/server/manifests/gateway-api.yaml'
+    kubeconfig: '{{ rke2_kubeconfig }}'
 
 - name: Loop over defined cilium values
   ansible.builtin.template:
     src: "cni/{{ item }}.j2"
     dest: "/var/lib/rancher/rke2/server/manifests/{{ item }}"
     mode: '0644'
+  when: rke2_cni == 'cilium'
   loop:
     - rke2-cilium-base.yaml
   notify: Restart RKE2 server
