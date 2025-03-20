@@ -1,11 +1,12 @@
-- name: Install tooling for maintaining the clusters
-  ansible.builtin.include_tasks: tools/fluxcd.yml
-
-- name: Install k9s
-  ansible.builtin.include_tasks: tools/k9s.yml
 
 - name: Download kube-config
   ansible.builtin.include_tasks: tools/kubeconfig.yml
   when:
     - "'rke2_server_primary' in group_names"
     - rke2_fetch_kubeconfig
+
+- name: Install tooling for maintaining the clusters
+  ansible.builtin.include_tasks: tools/fluxcd.yml
+
+- name: Install k9s
+  ansible.builtin.include_tasks: tools/k9s.yml
