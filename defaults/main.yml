@@ -16,7 +16,7 @@ rke2_artifact_path: /tmp/
 
 rke2_cni: cilium
 rke2_cni_gateway: true
-rke2_cni_gateway_crd_version: 'v1.1.1'
+rke2_cni_gateway_crd_version: 'v1.2.1'
 rke2_cni_gateway_crd_release: 'experimental'
 
 # rke2_dualstack: false # allow ipv6

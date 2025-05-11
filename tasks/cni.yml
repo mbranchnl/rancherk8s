@@ -4,7 +4,7 @@
     path: /var/lib/rancher/rke2/agent/pod-manifests/kube-proxy.yaml
     state: absent
 
-- name: Download Gateway API
+- name: "Download Gateway API {{ rke2_cni_gateway_crd_version }}"
   ansible.builtin.get_url:
     url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ rke2_cni_gateway_crd_version }}/{{ rke2_cni_gateway_crd_release }}-install.yaml"
     dest: "/var/lib/rancher/rke2/server/manifests/gateway-api.yaml"
