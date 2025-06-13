@@ -43,6 +43,7 @@
         KUBECONFIG: "{{ rke2_kubeconfig }}"
       changed_when: false
       register: rke2_flux_check
+      ignore_errors: true
 
     - name: Set fact rke2_flux_bootstrap to false when already bootstrapped
       ansible.builtin.set_fact:

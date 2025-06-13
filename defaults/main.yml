@@ -14,10 +14,18 @@ rke2_major_version: "{{ rke2_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1')
 
 rke2_artifact_path: /tmp/
 
+rke2_limited_resources:
+  - kube-apiserver-cpu=500m
+  - kube-apiserver-memory=512M
+  - kube-scheduler-cpu=250m
+  - kube-scheduler-memory=512M
+  - etcd-cpu=250m
+
 rke2_cni: cilium
 rke2_cni_gateway: true
 rke2_cni_gateway_crd_version: 'v1.2.1'
 rke2_cni_gateway_crd_release: 'experimental'
+rke2_cni_l2_enabled: true
 
 # rke2_dualstack: false # allow ipv6
 

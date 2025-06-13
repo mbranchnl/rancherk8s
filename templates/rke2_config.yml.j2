@@ -28,3 +28,10 @@ etcd-snapshot-compress: true
 {% if rke2_backup_retention is defined %}
 etcd-snapshot-retention: "{{ rke2_backup_retention }}"
 {% endif %}
+
+{% if rke2_limited_resources is defined %}
+control-plane-resource-requests:
+{% for item in rke2_limited_resources %}
+  - {{ item }}
+{% endfor %}
+{% endif %}
