@@ -1,56 +1,25 @@
 ---
 # defaults file for rke2
-rke2_version: 'v1.31.3+rke2r1'
 
-rke2_node_type: server
-rke2_service_account: admin
+# versions
+rancherk8s_version: 'v1.31.3+rke2r1'
+rancherk8s_cni_cilium_version: '1.18.0'
+rancherk8s_cni_gateway_crd_version: 'v1.2.1'
 
-rke2_kubeconfig: "/opt/rke2/rke2.yaml"
-rke2_fetch_kubeconfig: true
+rancherk8s_node_type: server
+rancherk8s_service_account: admin
 
-rke2_version_installed: "{{ rke2_version }}"
-rke2_version_defined: "{{ rke2_version }}"
-rke2_major_version: "{{ rke2_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1') }}"
+rancherk8s_kubeconfig: "/etc/rancher/{{ rancherk8s_type }}/{{ rancherk8s_type }}.yaml"
+rancherk8s_fetch_kubeconfig: true
 
-rke2_artifact_path: /tmp/
+rancherk8s_version_installed: "{{ rancherk8s_version }}"
+rancherk8s_version_defined: "{{ rancherk8s_version }}"
+rancherk8s_major_version: "{{ rancherk8s_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1') }}"
 
-rke2_limited_resources:
-  - kube-apiserver-cpu=500m
-  - kube-apiserver-memory=512M
-  - kube-scheduler-cpu=250m
-  - kube-scheduler-memory=512M
-  - etcd-cpu=250m
+rancherk8s_artifact_path: /tmp/
 
-rke2_cni: cilium
-rke2_cni_gateway: true
-rke2_cni_gateway_crd_version: 'v1.2.1'
-rke2_cni_gateway_crd_release: 'experimental'
-rke2_cni_l2_enabled: true
-
-# rke2_dualstack: false # allow ipv6
-
-rke2_allow_upgrade: true
-# rke2_auto_upgrade: false
-# rke2_auto_upgrade_grace_period: 45
-
-rke2_backup_schedule: "0 8,20 * * *"
-rke2_backup_retention: "14"
-
-# Tooling like Flux
-rke2_install_tools: true
-
-rke2_flux_bootstrap: true
-rke2_flux_interval: '5m'
-rke2_flux_bootstrap_provider: 'github'
-rke2_flux_bootstrap_token:
-rke2_flux_bootstrap_owner:
-rke2_flux_bootstrap_repo: 'fleet-infra'
-rke2_flux_bootstrap_branch: 'main'
-rke2_flux_bootstrap_path: './clusters/my-cluster'
-rke2_flux_bootstrap_type: 'personal'
-
-# Loadbalancer IP for K8s API
-# rke2_loadbalancer_ip: "{{ hostvars[groups['rke2_server_primary'][0]].ansible_default_ipv4.address }}"
+## Timings and resources
+rancherk8s_loadbalancer_ip: "{{ hostvars[groups['server_primary'][0]].ansible_default_ipv4.address }}"
 
 # # Timings, fill in in seconds
 # # Defaults are based on 'Medium Update and Average Reaction'
@@ -60,3 +29,42 @@ rke2_flux_bootstrap_type: 'personal'
 # node_monitor_period: 5
 # node_monitor_grace_period: 120
 # node_status_update_frequency: 20
+
+
+rancherk8s_limited_resources:
+  - kube-apiserver-cpu=500m
+  - kube-apiserver-memory=512M
+  - kube-scheduler-cpu=250m
+  - kube-scheduler-memory=512M
+  - etcd-cpu=250m
+
+## Networking - CNI - Cilium
+rancherk8s_cni: cilium
+rancherk8s_cni_l2_enabled: true
+
+rancherk8s_cni_gateway: true
+rancherk8s_cni_gateway_crd_release: 'experimental'
+
+# rancherk8s_dualstack: false # allow ipv6
+
+## Upgrades and backups
+
+rancherk8s_allow_upgrade: true
+# rancherk8s_auto_upgrade: false
+# rancherk8s_auto_upgrade_grace_period: 45
+
+rancherk8s_backup_schedule: "0 8,20 * * *"
+rancherk8s_backup_retention: "14"
+
+## Tooling like Flux
+rancherk8s_install_tools: true
+
+rancherk8s_flux_bootstrap: true
+rancherk8s_flux_interval: '5m'
+rancherk8s_flux_bootstrap_provider: 'github'
+rancherk8s_flux_bootstrap_token:
+rancherk8s_flux_bootstrap_owner:
+rancherk8s_flux_bootstrap_repo: 'fleet-infra'
+rancherk8s_flux_bootstrap_branch: 'main'
+rancherk8s_flux_bootstrap_path: './clusters/my-cluster'
+rancherk8s_flux_bootstrap_type: 'personal'

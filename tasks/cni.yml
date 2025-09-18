@@ -1,28 +1,37 @@
 ---
-- name: Remove kube-proxy manifest
+- name: Create manifests folder
   ansible.builtin.file:
-    path: /var/lib/rancher/rke2/agent/pod-manifests/kube-proxy.yaml
+    path: "/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/"
+    mode: '0755'
+    owner: root
+    group: root
+    state: directory
+
+- name: "Remove kube-proxy for {{ rancherk8s_type }}"
+  when: rancherk8s_type == 'rke2'
+  ansible.builtin.file:
+    path: /var/lib/rancher/{{ rancherk8s_type }}/agent/pod-manifests/kube-proxy.yaml
     state: absent
 
-- name: "Download Gateway API {{ rke2_cni_gateway_crd_version }}"
+- name: "Download Gateway API {{ rancherk8s_cni_gateway_crd_version }}"
   ansible.builtin.get_url:
-    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ rke2_cni_gateway_crd_version }}/{{ rke2_cni_gateway_crd_release }}-install.yaml"
-    dest: "/var/lib/rancher/rke2/server/manifests/gateway-api.yaml"
+    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ rancherk8s_cni_gateway_crd_version }}/{{ rancherk8s_cni_gateway_crd_release }}-install.yaml"  # noqa yaml[line-length]
+    dest: "/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/gateway-api.yaml"
     mode: '0644'
-  notify: Restart RKE2 server
+  notify: Restart server
 
 - name: "Install Gateway API CRD's"
   kubernetes.core.k8s:
     state: present
-    src: '/var/lib/rancher/rke2/server/manifests/gateway-api.yaml'
-    kubeconfig: '{{ rke2_kubeconfig }}'
+    src: '/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/gateway-api.yaml'
+    kubeconfig: '{{ rancherk8s_kubeconfig }}'
 
 - name: Loop over defined cilium values
   ansible.builtin.template:
     src: "cni/{{ item }}.j2"
-    dest: "/var/lib/rancher/rke2/server/manifests/{{ item }}"
+    dest: "/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/{{ item }}"
     mode: '0644'
-  when: rke2_cni == 'cilium'
+  when: rancherk8s_cni == 'cilium'
   loop:
-    - rke2-cilium-base.yaml
-  notify: Restart RKE2 server
+    - cilium-base.yaml
+  notify: Restart server

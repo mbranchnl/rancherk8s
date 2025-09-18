@@ -1,0 +1,55 @@
+---
+# Ansible tasks to install the latest Helm version on Rocky Linux
+- name: Install Helm on Rocky Linux systems
+  block:
+    - name: Check if Helm is already installed
+      ansible.builtin.command: helm version --short
+      register: helm_version_check
+      failed_when: false
+      changed_when: false
+
+    - name: Get latest Helm release info from GitHub API
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/helm/helm/releases/latest
+        method: GET
+        return_content: true
+      register: helm_latest_release
+      when: helm_version_check.rc != 0
+
+    - name: Set Helm version variable
+      ansible.builtin.set_fact:
+        helm_version: "{{ helm_latest_release.json.tag_name }}"
+      when: helm_version_check.rc != 0
+
+    - name: Create temporary directory for Helm installation
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: helm
+      register: helm_temp_dir
+      when: helm_version_check.rc != 0
+
+    - name: Download Helm installation script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: "{{ helm_temp_dir.path }}/get_helm.sh"
+        mode: '0755'
+      when: helm_version_check.rc != 0
+
+    - name: Install Helm using official script # noqa no-changed-when
+      ansible.builtin.command: "{{ helm_temp_dir.path }}/get_helm.sh"
+      environment:
+        DESIRED_VERSION: "{{ helm_version }}"
+        HELM_INSTALL_DIR: "/usr/local/bin"
+      become: true
+      when: helm_version_check.rc != 0
+
+    - name: Clean up temporary directory
+      ansible.builtin.file:
+        path: "{{ helm_temp_dir.path }}"
+        state: absent
+      when: helm_version_check.rc != 0
+
+    - name: Verify Helm installation
+      ansible.builtin.command: helm version --short
+      register: helm_verify
+      changed_when: false

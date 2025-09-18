@@ -1,7 +1,7 @@
 ---
-- name: Restart rke2-server
+- name: Restart k8s-server
   ansible.builtin.systemd:
-    name: rke2-server
+    name: "{{ 'rke2-' + rancherk8s_node_type if rancherk8s_type == 'rke2' else 'k3s' }}"
     state: restarted
 
 - name: Wait for kubernetes API to become available on server

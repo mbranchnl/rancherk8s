@@ -1,41 +1,64 @@
 ---
-- name: Download install.sh
+- name: 'Download install.sh from {{ rancherk8s_type }}.io'  # noqa name[template]
   ansible.builtin.get_url:
-    url: https://get.rke2.io/
-    dest: "{{ rke2_artifact_path }}/install.sh"
+    url: https://get.{{ rancherk8s_type }}.io/
+    dest: "{{ rancherk8s_artifact_path }}/install.sh"
     mode: '0755'
 
-- name: Run RKE2 installer # noqa command-instead-of-shell no-changed-when
-  ansible.builtin.shell:
-    cmd: "{{ rke2_artifact_path }}/install.sh"
-  environment:
-    INSTALL_RKE2_VERSION: '{{ rke2_version }}'
-    INSTALL_RKE2_TYPE: server
+- name: Set dynamic environment variables
+  ansible.builtin.set_fact:
+    installer_env: "{{ dict(env_keys | zip(env_values)) }}"
+  vars:
+    env_keys:
+      - "INSTALL_{{ rancherk8s_type | upper }}_VERSION"
+      - "INSTALL_{{ rancherk8s_type | upper }}_TYPE"
+    env_values:
+      - "{{ rancherk8s_version }}"
+      - "{{ rancherk8s_type }}"
 
-- name: Start and enable RKE2 service on primary node only
+- name: 'Run installer for {{ rancherk8s_type }}' # noqa command-instead-of-shell no-changed-when
+  ansible.builtin.shell:
+    cmd: "{{ rancherk8s_artifact_path }}/install.sh"
+  environment: "{{ installer_env }}"
+
+- name: 'Start and enable service on primary node only for {{ rancherk8s_type }}'
   ansible.builtin.service:
-    name: rke2-server
+    name: "{{ 'rke2-' + rancherk8s_node_type if rancherk8s_type == 'rke2' else 'k3s' }}"
     enabled: true
     state: started
-  when: inventory_hostname in groups['rke2_server_primary']
-
-- name: Disable automated updates of RKE2
-  ansible.builtin.replace:
-    path: /etc/yum.repos.d/rancher-rke2.repo
-    regexp: '^enabled=1'
-    replace: enabled=0
+  when: inventory_hostname in groups['server_primary']
 
 - name: Wait for kubernetes API to become available on server
   ansible.builtin.wait_for:
     port: 6443
     timeout: 600
     delay: 10
-  register: rke2_api_check
+  register: rancherk8s_api_check
   when:
-    - inventory_hostname in groups['rke2_server_primary']
+    - inventory_hostname in groups['server_primary']
 
 - name: "Can't connect to rke2-api end play"
   ansible.builtin.meta: end_play
   when:
-    - inventory_hostname in groups['rke2_server_primary']
-    - rke2_api_check.failed
+    - inventory_hostname in groups['server_primary']
+    - rancherk8s_api_check.failed
+
+- name: Set node-token path
+  when: rancherk8s_type == 'rke2'
+  ansible.builtin.set_fact:
+    rancherk8s_node_token: "/var/lib/rancher/{{ rancherk8s_type }}/server/node-token"
+
+- name: Set node-token path
+  when: rancherk8s_type == 'k3s'
+  ansible.builtin.set_fact:
+    rancherk8s_node_token: "/var/lib/rancher/{{ rancherk8s_type }}/server/agent-token"
+
+- name: Wait for node-token
+  ansible.builtin.wait_for:
+    path: '{{ rancherk8s_node_token }}'
+    timeout: 30
+
+- name: Read and register node-token from first server
+  ansible.builtin.slurp:
+    src: '{{ rancherk8s_node_token }}'
+  register: node_token

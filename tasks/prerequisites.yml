@@ -31,7 +31,9 @@
   changed_when: false
 
 - name: "Configure NetworkManager so that it ignores CNI's"
-  when: nmcli_output.stdout == 'running'
+  when:
+    - nmcli_output.stdout == 'running'
+    - rancherk8s_type == 'rke2'
   block:
     - name: Ensure /etc/NetworkManager/conf.d directory exists
       ansible.builtin.file:
@@ -44,13 +46,13 @@
         src: rke2-canal.conf
         dest: /etc/NetworkManager/conf.d/00-rke2-canal.conf
         mode: '0644'
-      register: rke2_networkmanager_cni
+      register: rancherk8s_networkmanager_cni
 
     - name: Reload NetworkManager  # noqa no-handler
       ansible.builtin.systemd:
         name: NetworkManager
         state: reloaded
-      when: rke2_networkmanager_cni.changed
+      when: rancherk8s_networkmanager_cni.changed
 
     - name: Disable nm-cloud services
       ansible.builtin.systemd:

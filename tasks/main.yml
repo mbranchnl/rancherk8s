@@ -5,47 +5,53 @@
 - name: Install prerequisites
   ansible.builtin.include_tasks: prerequisites.yml
 
-- name: Configure RKE2 config-file
+- name: 'Configure config-file for {{ rancherk8s_type }}'
   ansible.builtin.include_tasks: configure.yml
   when:
-    - "'rke2_server_primary' in group_names"
+    - "'server_primary' in group_names"
 
-- name: "Install RKE2 version: {{ rke2_version }}"
+- name: "Install version: {{ rancherk8s_version }}"
   ansible.builtin.include_tasks: install.yml
   when:
-    - rke2_bin.stat.exists is false
+    - rancherk8s_bin.stat.exists is false
 
 - name: Configure CNI, ServiceAccount and tooling
-  when: "'rke2_server_primary' in group_names"
+  when: "'server_primary' in group_names"
   block:
     - name: Configure CNI
       ansible.builtin.include_tasks: cni.yml
 
-    - name: "Setup service account sa-{{ rke2_service_account }}"
+    - name: "Setup service account sa-{{ rancherk8s_service_account }}"
       ansible.builtin.include_tasks: service-account.yml
 
-    - name: Restart RKE2
+    - name: Restart k8s
       ansible.builtin.meta: flush_handlers
 
     - name: Install tooling for maintaining the clusters
       ansible.builtin.include_tasks: tools.yml
       when:
-        - rke2_install_tools
+        - rancherk8s_install_tools
+
+- name: Install Cilium
+  when:
+    - rancherk8s_type == 'k3s'
+    - rancherk8s_cni == 'cilium'
+  ansible.builtin.include_tasks: tools/cilium.yml
 
 - name: Setup initial labels
   ansible.builtin.include_tasks: labels.yml
   when: labels is defined
 
-- name: "Upgrade environment to {{ rke2_version_defined }}"
+- name: "Upgrade environment to {{ rancherk8s_version_defined }}"
   ansible.builtin.include_tasks: upgrade.yml
   when:
-    - rke2_version_defined is version(rke2_version_installed, '>')
-    - rke2_allow_upgrade is true
+    - rancherk8s_version_defined is version(rancherk8s_version_installed, '>')
+    - rancherk8s_allow_upgrade is true
 
 - name: "Show API token"  # noqa no-handler
   ansible.builtin.debug:
     msg:
       - "This token below is only shown during creation of the rke2-cluster."
       - "The token is base64 encoded and can be used as API-token:"
-      - "{{ rke2_sa_token.resources.0.data.token }}"
-  when: rke2_sa.changed
+      - "{{ rancherk8s_sa_token.resources.0.data.token }}"
+  when: rancherk8s_sa.changed

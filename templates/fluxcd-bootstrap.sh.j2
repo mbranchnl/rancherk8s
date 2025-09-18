@@ -1,14 +1,14 @@
 #!/bin/bash
 
-export GITHUB_TOKEN={{ rke2_flux_bootstrap_token }}
+export GITHUB_TOKEN={{ rancherk8s_flux_bootstrap_token }}
 
 {% set command -%}
-flux bootstrap {{ rke2_flux_bootstrap_provider }} \
-    --interval={{ rke2_flux_interval }} \
-    --owner={{ rke2_flux_bootstrap_owner }} \
-    --repository={{ rke2_flux_bootstrap_repo }} \
-    --branch={{ rke2_flux_bootstrap_branch }} \
-    --path={{ rke2_flux_bootstrap_path }} \
-    --{{ rke2_flux_bootstrap_type }}
+flux bootstrap {{ rancherk8s_flux_bootstrap_provider }} \
+    --interval={{ rancherk8s_flux_interval }} \
+    --owner={{ rancherk8s_flux_bootstrap_owner }} \
+    --repository={{ rancherk8s_flux_bootstrap_repo }} \
+    --branch={{ rancherk8s_flux_bootstrap_branch }} \
+    --path={{ rancherk8s_flux_bootstrap_path }} \
+    --{{ rancherk8s_flux_bootstrap_type }}
 {%- endset -%}
 {{ command | replace('\\\n    ', '') }}

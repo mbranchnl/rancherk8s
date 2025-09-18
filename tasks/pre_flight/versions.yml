@@ -1,20 +1,20 @@
 ---
 - name: Check versions
+  when:
+    - rancherk8s_bin.stat.exists
   block:
-    - name: Check if rke2 installed and register installed version  # noqa risky-shell-pipe
+    - name: "Check if rke2 installed and register installed version of {{ rancherk8s_type }}"  # noqa risky-shell-pipe
       ansible.builtin.shell: |
         set -o pipefail
-        rke2 -v | grep rke2 | awk '{print $3}'
-      register: gathered_installed_rke2_version
+        {{ rancherk8s_type }} -v | grep {{ rancherk8s_type }} | awk '{print $3}'
+      register: gathered_installed_version
       changed_when: false
 
     - name: Set fact for installed and defined versions
       ansible.builtin.set_fact:
-        rke2_version_installed: "{{ gathered_installed_rke2_version.stdout }}"
-        rke2_version_defined: "{{ rke2_version }}"
-  when:
-    - rke2_bin.stat.exists
+        rancherk8s_version_installed: "{{ gathered_installed_version.stdout }}"
+        rancherk8s_version_defined: "{{ rancherk8s_version }}"
 
-- name: End play when rke2_version_installed is newer than rke2_version_defined
+- name: End play when rancherk8s_version_installed is newer than rancherk8s_version_defined
   ansible.builtin.meta: end_play
-  when: rke2_version_defined is version(rke2_version_installed, '<')
+  when: rancherk8s_version_defined is version(rancherk8s_version_installed, '<')

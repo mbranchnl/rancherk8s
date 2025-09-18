@@ -6,56 +6,51 @@
     mode: '0644'
     create: true
   loop:
-    - 'export PATH="$PATH:/var/lib/rancher/rke2/bin"'
-    - 'export KUBECONFIG={{ rke2_kubeconfig }}'
+    - 'export PATH="$PATH:/var/lib/rancher/{{ rancherk8s_type }}/bin"'
+    - 'export KUBECONFIG={{ rancherk8s_kubeconfig }}'
 
-- name: "Create rke2_kubeconfig dir"
+- name: "Create rancherk8s_kubeconfig dir"
   ansible.builtin.file:
-    path: "{{ rke2_kubeconfig | dirname }}"
+    path: "{{ rancherk8s_kubeconfig | dirname }}"
     state: directory
     owner: root
     group: root
     mode: '0755'
 
-- name: Start installation RKE2 server node
+- name: 'Start installation server node for {{ rancherk8s_type }}'
   ansible.builtin.include_tasks: install/server.yml
   when:
-    - "'rke2_server_primary' in group_names"
+    - "'server_primary' in group_names"
 
-- name: Start installation RKE2 agent node
+- name: 'Start installation agent node for {{ rancherk8s_type }}'
   ansible.builtin.include_tasks: install/agent.yml
-  loop: "{{ groups.rke2_agent }}"
+  loop: "{{ groups.agent }}"
   when:
-    - "'rke2_agent' in group_names"
+    - "'agent' in group_names"
     - hostvars[item].inventory_hostname == inventory_hostname
-
-- name: Get node-token for cluster nodes
-  when: inventory_hostname in groups['rke2_server_primary']
-  block:
-    - name: Wait for node-token
-      ansible.builtin.wait_for:
-        path: /var/lib/rancher/rke2/server/node-token
-        timeout: 30
-
-    - name: Read and register node-token from first server
-      ansible.builtin.slurp:
-        src: /var/lib/rancher/rke2/server/node-token
-      register: node_token
 
 - name: Store node-token
   ansible.builtin.set_fact:
-    rke2_token: "{{ hostvars[groups['rke2_server_primary'][0]]['node_token'].content | b64decode | regex_replace('\n', '') }}"
+    rancherk8s_token: "{{ hostvars[groups['server_primary'][0]]['node_token'].content | b64decode | regex_replace('\n', '') }}"
 
 - name: Create cluster with all server-nodes
   ansible.builtin.include_tasks: install/cluster.yml
-  loop: "{{ groups.rke2_server_secondary }}"
+  loop: "{{ groups.server_secondary }}"
   when:
-    - "'rke2_server_secondary' in group_names"
+    - "'server_secondary' in group_names"
     - hostvars[item].inventory_hostname == inventory_hostname
 
 - name: Set RKE2 login-file permissions
+  when: rancherk8s_type == 'rke2'
   ansible.builtin.copy:
     src: "/etc/rancher/rke2/rke2.yaml"
-    dest: "{{ rke2_kubeconfig }}"
+    dest: "{{ rancherk8s_kubeconfig }}"
     mode: '0644'
     remote_src: true
+
+- name: Disable automated updates of RKE2
+  when: rancherk8s_type == 'rke2'
+  ansible.builtin.replace:
+    path: /etc/yum.repos.d/rancher-rke2.repo
+    regexp: '^enabled=1'
+    replace: 'enabled=0'

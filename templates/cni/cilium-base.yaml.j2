@@ -2,12 +2,12 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
-  name: rke2-cilium
+  name: {{ rancherk8s_type }}-cilium
   namespace: kube-system
 spec:
   valuesContent: |-
-{% if rke2_loadbalancer_ip is defined%}
-    k8sServiceHost: {{ rke2_loadbalancer_ip }} # K8s loadbalancer IP for HA
+{% if rancherk8s_loadbalancer_ip is defined%}
+    k8sServiceHost: {{ rancherk8s_loadbalancer_ip }} # K8s loadbalancer IP for HA
 {% else %}
     k8sServiceHost: 127.0.0.1
 {% endif %}
@@ -24,12 +24,12 @@ spec:
     image:
       pullPolicy: IfNotPresent
     operator:
-      replicas: {{ groups['rke2_server'] | length | int }}
-{% if rke2_cni_l2_enabled %}
+      replicas: {{ groups['server'] | length | int }}
+{% if rancherk8s_cni_l2_enabled %}
     l2announcements:
       enabled: true
 {% endif %}
-{% if rke2_cni_gateway %}
+{% if rancherk8s_cni_gateway %}
     gatewayAPI:
       enabled: true
       default: true

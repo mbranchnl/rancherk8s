@@ -1,5 +1,4 @@
 ---
 # handlers file for rke2
-- name: Restart RKE2 server
-  include_tasks: handlers/restart-rke2.yml
-
+- name: Restart server
+  ansible.builtin.include_tasks: handlers/restart.yml

@@ -1,13 +1,13 @@
 ---
-- name: Create /etc/rancher/rke2
+- name: 'Create /etc/rancher/{{ rancherk8s_type }}'
   ansible.builtin.file:
     state: directory
-    path: '/etc/rancher/rke2'
+    path: '/etc/rancher/{{ rancherk8s_type }}'
     mode: '0755'
 
-- name: Set RKE2 config-file
+- name: 'Set config-file for {{ rancherk8s_type }}'
   ansible.builtin.template:
-    src: rke2_config.yml.j2
-    dest: /etc/rancher/rke2/config.yaml
+    src: config.yml.j2
+    dest: '/etc/rancher/{{ rancherk8s_type }}/config.yaml'
     mode: '0644'
-  notify: Restart RKE2 server
+  notify: Restart server

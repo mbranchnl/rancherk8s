@@ -1,14 +1,14 @@
 ---
-- name: Start installation RKE2 server node
+- name: "Start upgrade server node for {{ rancherk8s_type }}"
   ansible.builtin.include_tasks: install/server.yml
-  loop: "{{ groups.rke2_server }}"
+  loop: "{{ groups.server }}"
   when:
-    - "'rke2_server' in group_names"
+    - "'server' in group_names"
     - hostvars[item].inventory_hostname == inventory_hostname
 
-- name: Start installation RKE2 agent node
+- name: "Start upgrade agent node for {{ rancherk8s_type }}"
   ansible.builtin.include_tasks: install/agent.yml
-  loop: "{{ groups.rke2_agent }}"
+  loop: "{{ groups.agent }}"
   when:
-    - "'rke2_agent' in group_names"
+    - "'agent' in group_names"
     - hostvars[item].inventory_hostname == inventory_hostname
