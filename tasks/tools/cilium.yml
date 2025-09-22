@@ -63,4 +63,6 @@
         operator:
           clusterPoolIPv4PodCIDRList:
             - "10.42.0.0/16"
+      operator:
+        replicas: "{{ rancherk8s_cni_operator_replicas }}"
     state: present
