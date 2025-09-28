@@ -68,7 +68,7 @@
       # Add Gateway API support
       gatewayAPI:
         enabled: true
-      kubeProxyReplacement: partial  # or strict, depending on your preference
+      kubeProxyReplacement: true
       envoy:
-        enabled: true  # This might be implicit but good to be explicit
+        enabled: true
     state: present
