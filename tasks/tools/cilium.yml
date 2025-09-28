@@ -65,4 +65,10 @@
             - "10.42.0.0/16"
       operator:
         replicas: "{{ rancherk8s_cni_operator_replicas }}"
+      # Add Gateway API support
+      gatewayAPI:
+        enabled: true
+      kubeProxyReplacement: partial  # or strict, depending on your preference
+      envoy:
+        enabled: true  # This might be implicit but good to be explicit
     state: present

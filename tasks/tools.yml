@@ -4,9 +4,6 @@
     - "'server_primary' in group_names"
     - rancherk8s_fetch_kubeconfig
 
-- name: Install tooling for maintaining the clusters
-  ansible.builtin.include_tasks: tools/fluxcd.yml
-
 - name: Install helm
   ansible.builtin.include_tasks: tools/helm.yml
 

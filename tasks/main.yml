@@ -38,6 +38,9 @@
     - rancherk8s_cni == 'cilium'
   ansible.builtin.include_tasks: tools/cilium.yml
 
+- name: Install fluxcd for managing cluster
+  ansible.builtin.include_tasks: tools/fluxcd.yml
+
 - name: Setup initial labels
   ansible.builtin.include_tasks: labels.yml
   when: labels is defined

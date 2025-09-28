@@ -59,6 +59,17 @@
         dest: '/opt/fluxcd-bootstrap.sh'
         mode: '0755'
 
+    - name: Check if cluster is reachable
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Namespace
+        name: kube-system
+      register: rancherk8s_system_check
+      until: rancherk8s_system_check is succeeded
+      retries: 10
+      environment:
+        KUBECONFIG: "{{ rancherk8s_kubeconfig }}"
+
     - name: Run bootstrap file  # noqa no-changed-when
       ansible.builtin.shell:
         cmd: '/bin/bash /opt/fluxcd-bootstrap.sh'
