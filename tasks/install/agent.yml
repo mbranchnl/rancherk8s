@@ -21,6 +21,12 @@
     cmd: "{{ rancherk8s_artifact_path }}/install.sh"
   environment: "{{ installer_env }}"
 
+- name: 'Set config-file for {{ rancherk8s_type }}'
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: '/etc/rancher/{{ rancherk8s_type }}/config.yaml'
+    mode: '0644'
+
 - name: 'Start and enable service on primary node only for {{ rancherk8s_type }}'
   ansible.builtin.service:
     name: "{{ 'rke2-' + rancherk8s_node_type if rancherk8s_type == 'rke2' else 'k3s' }}"

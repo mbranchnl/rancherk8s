@@ -1,5 +1,10 @@
 {% if 'server_primary' not in group_names %}
+
+{% if rancherk8s_type == 'rke2' %}
 server: https://{{ hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] }}:9345
+{% else %}
+server: https://{{ hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] }}:6443
+{% endif %}
 token: {{ rancherk8s_token }}
 {% endif %}
 {% if rancherk8s_node_type == "server" %}

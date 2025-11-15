@@ -34,12 +34,15 @@
 
 - name: Install Cilium
   when:
+    - "'server_primary' in group_names"
     - rancherk8s_type == 'k3s'
     - rancherk8s_cni == 'cilium'
   ansible.builtin.include_tasks: tools/cilium.yml
 
 - name: Install fluxcd for managing cluster
   ansible.builtin.include_tasks: tools/fluxcd.yml
+  when:
+    - "'server_primary' in group_names"
 
 - name: Setup initial labels
   ansible.builtin.include_tasks: labels.yml
@@ -52,9 +55,11 @@
     - rancherk8s_allow_upgrade is true
 
 - name: "Show API token"  # noqa no-handler
+  when:
+    - "'server_primary' in group_names"
+    - rancherk8s_sa.changed
   ansible.builtin.debug:
     msg:
       - "This token below is only shown during creation of the rke2-cluster."
       - "The token is base64 encoded and can be used as API-token:"
       - "{{ rancherk8s_sa_token.resources.0.data.token }}"
-  when: rancherk8s_sa.changed
