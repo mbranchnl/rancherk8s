@@ -7,7 +7,7 @@
       ansible.builtin.add_host:
         name: "{{ item | string }}"
         groups: server
-      when: rancherk8s_node_type == "server"
+      when: hostvars[item].rancherk8s_node_type == "server"
       loop: "{{ groups[rancherk8s_type] }}"
       changed_when: false
 
@@ -15,7 +15,7 @@
       ansible.builtin.add_host:
         name: "{{ item | string }}"
         groups: agent
-      when: rancherk8s_node_type == "agent"
+      when: hostvars[item].rancherk8s_node_type == "agent"
       loop: "{{ groups[rancherk8s_type] }}"
       changed_when: false
 
@@ -23,7 +23,7 @@
       ansible.builtin.add_host:
         name: "{{ hostvars[groups['server'][0]].inventory_hostname | string }}"
         groups: server_primary
-      when: hostvars[groups['server'][0]]
+      when: groups['server'] | length > 0
       changed_when: false
 
     - name: Add other servers to secondary group when more than 1 server
@@ -39,5 +39,4 @@
 
     - name: End play if odd amount of servers is provisioned
       ansible.builtin.meta: end_host
-      when:
-        - "groups['server'] | length | int is even"
+      when: groups['server'] | length | int is even
