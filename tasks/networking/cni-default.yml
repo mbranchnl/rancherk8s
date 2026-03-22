@@ -13,19 +13,6 @@
     path: /var/lib/rancher/{{ rancherk8s_type }}/agent/pod-manifests/kube-proxy.yaml
     state: absent
 
-- name: "Download Gateway API {{ rancherk8s_cni_gateway_crd_version }}"
-  ansible.builtin.get_url:
-    url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ rancherk8s_cni_gateway_crd_version }}/{{ rancherk8s_cni_gateway_crd_release }}-install.yaml"  # noqa yaml[line-length]
-    dest: "/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/gateway-api.yaml"
-    mode: '0644'
-  notify: Restart server
-
-- name: "Install Gateway API CRD's"
-  kubernetes.core.k8s:
-    state: present
-    src: '/var/lib/rancher/{{ rancherk8s_type }}/server/manifests/gateway-api.yaml'
-    kubeconfig: '{{ rancherk8s_kubeconfig }}'
-
 - name: Loop over defined cilium values
   ansible.builtin.template:
     src: "cni/{{ item }}.j2"

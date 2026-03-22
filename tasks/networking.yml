@@ -1,0 +1,15 @@
+- name: Install networking defaults
+  ansible.builtin.include_tasks: networking/cni-default.yml
+
+- name: Install gateway API CRDs
+  ansible.builtin.include_tasks: networking/gateway.yml
+
+- name: Restart k8s
+  ansible.builtin.meta: flush_handlers
+
+- name: Install Cilium
+  when:
+    - "'server_primary' in group_names"
+    - rancherk8s_type == 'k3s'
+    - rancherk8s_cni == 'cilium'
+  ansible.builtin.include_tasks: networking/cilium.yml

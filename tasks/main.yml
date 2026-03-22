@@ -18,26 +18,16 @@
 - name: Configure CNI, ServiceAccount and tooling
   when: "'server_primary' in group_names"
   block:
-    - name: Configure CNI
-      ansible.builtin.include_tasks: cni.yml
+    - name: Install Networking
+      ansible.builtin.include_tasks: networking.yml
 
     - name: "Setup service account sa-{{ rancherk8s_service_account }}"
       ansible.builtin.include_tasks: service-account.yml
-
-    - name: Restart k8s
-      ansible.builtin.meta: flush_handlers
 
     - name: Install tooling for maintaining the clusters
       ansible.builtin.include_tasks: tools.yml
       when:
         - rancherk8s_install_tools
-
-- name: Install Cilium
-  when:
-    - "'server_primary' in group_names"
-    - rancherk8s_type == 'k3s'
-    - rancherk8s_cni == 'cilium'
-  ansible.builtin.include_tasks: tools/cilium.yml
 
 - name: Install fluxcd for managing cluster
   ansible.builtin.include_tasks: tools/fluxcd.yml

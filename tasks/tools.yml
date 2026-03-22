@@ -9,3 +9,9 @@
 
 - name: Install k9s
   ansible.builtin.include_tasks: tools/k9s.yml
+
+- name: Install Cilium CLI
+  when:
+    - rancherk8s_type == 'k3s'
+    - rancherk8s_cni == 'cilium'
+  ansible.builtin.include_tasks: tools/cilium.yml
