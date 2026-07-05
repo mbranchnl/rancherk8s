@@ -8,6 +8,9 @@ rancherk8s_cni_cilium_version: '1.18.7'
 # Helm version to install (e.g. 'v3.16.4'). Leave empty to install the latest release.
 rancherk8s_helm_version: ''
 
+# k9s version to install (e.g. 'v0.40.5'). Leave empty to install the latest release.
+rancherk8s_k9s_version: 'v0.40.5'
+
 rancherk8s_cni_cilium_autoupgrade: false
 
 rancherk8s_node_type: server
