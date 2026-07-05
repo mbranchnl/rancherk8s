@@ -4,7 +4,14 @@
     name: "{{ 'rke2-' + rancherk8s_node_type if rancherk8s_type == 'rke2' else 'k3s' }}"
     state: restarted
 
-- name: Wait for kubernetes API to become available on server
-  ansible.builtin.wait_for:
-    port: 6443
-    timeout: 300
+- name: Wait for kubernetes API to become ready on server
+  ansible.builtin.uri:
+    url: https://127.0.0.1:6443/readyz
+    validate_certs: false
+    client_cert: "/var/lib/rancher/{{ rancherk8s_type }}/server/tls/client-admin.crt"
+    client_key: "/var/lib/rancher/{{ rancherk8s_type }}/server/tls/client-admin.key"
+    status_code: 200
+  register: rancherk8s_api_ready
+  until: rancherk8s_api_ready.status == 200
+  retries: 60
+  delay: 5

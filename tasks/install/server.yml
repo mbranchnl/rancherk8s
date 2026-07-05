@@ -49,6 +49,20 @@
     - inventory_hostname in groups['server_primary']
     - rancherk8s_api_check.failed
 
+- name: Wait for kubernetes API to become ready
+  ansible.builtin.uri:
+    url: https://127.0.0.1:6443/readyz
+    validate_certs: false
+    client_cert: "/var/lib/rancher/{{ rancherk8s_type }}/server/tls/client-admin.crt"
+    client_key: "/var/lib/rancher/{{ rancherk8s_type }}/server/tls/client-admin.key"
+    status_code: 200
+  register: rancherk8s_api_ready
+  until: rancherk8s_api_ready.status == 200
+  retries: 60
+  delay: 5
+  when:
+    - inventory_hostname in groups['server_primary']
+
 - name: Set node-token path
   when: rancherk8s_type == 'rke2'
   ansible.builtin.set_fact:
