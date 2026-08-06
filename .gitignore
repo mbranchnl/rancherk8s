@@ -1,4 +1,8 @@
-.ansible
-.vscode
+# Files
 files/fluxcd-bootstrap.sh
 files/kubeconfig.yml
+
+# Folders
+.ansible
+.vscode
+.claude
