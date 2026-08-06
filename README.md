@@ -12,6 +12,14 @@ KNOW ISSUES
 - When bootstrapping a cluster with autoupgrade on true it will fail due to a unknown rancherk8s_version,
 this is because the cluster is just bootstrapped. This will be fixed in future releases.
 
+Gateway API CRDs
+----------------
+
+This role does not install or manage the Kubernetes Gateway API CRDs and does not enable Cilium's
+Gateway API controller. Install and manage compatible CRDs after the RKE2 or K3s cluster is available,
+for example through the Envoy Gateway installation managed by the GitOps layer. If Cilium's Gateway API
+controller is enabled separately, its required CRDs must exist before that controller is enabled.
+
 Role Variables
 ---------
 

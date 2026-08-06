@@ -31,6 +31,10 @@
       ansible.builtin.set_fact:
         rancherk8s_cni_cilium_version: "{{ rancherk8s_cilium_version.content | trim | regex_replace('^v', '') }}"
 
+# Helm is required here but tools.yml only runs after networking.yml
+- name: Ensure helm is installed
+  ansible.builtin.include_tasks: tools/helm.yml
+
 - name: "Install Cilium helm chart {{ rancherk8s_cni_cilium_version }}"
   block:
     - name: Add cilium chart repo
@@ -62,10 +66,6 @@
           operator:
             replicas: "{{ rancherk8s_cni_operator_replicas }}"
             rollOutPods: true
-          # Add Gateway API support
-          gatewayAPI:
-            enabled: true
-            enableAlphaRoutes: false
           kubeProxyReplacement: true
           envoy:
             enabled: true

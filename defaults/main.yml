@@ -52,8 +52,6 @@ rancherk8s_cni_l2_enabled: true
 rancherk8s_cni_operator_replicas: 1
 
 rancherk8s_cni_gateway: true
-rancherk8s_cni_gateway_crd_release: 'standard'
-rancherk8s_cni_gateway_crd_version: 'v1.4.1'
 
 # rancherk8s_dualstack: false # allow ipv6
 
