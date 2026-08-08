@@ -72,6 +72,13 @@ rancherk8s_allow_upgrade: true
 # rancherk8s_auto_upgrade: false
 # rancherk8s_auto_upgrade_grace_period: 45
 
+# Cordon + drain a node before upgrading it, uncordon once it reports Ready
+# again. Seconds to wait for pods to evict before the drain fails.
+rancherk8s_upgrade_drain_timeout: 300
+# How many agents to upgrade concurrently. Servers always upgrade one at a
+# time regardless of this setting (etcd quorum safety).
+rancherk8s_upgrade_agent_throttle: 1
+
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"
 

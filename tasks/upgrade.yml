@@ -1,14 +1,15 @@
 ---
-- name: "Start upgrade server node for {{ rancherk8s_type }}"
-  ansible.builtin.include_tasks: install/server.yml
-  loop: "{{ groups.server }}"
-  when:
-    - "'server' in group_names"
-    - hostvars[item].inventory_hostname == inventory_hostname
+- name: "Upgrade server node for {{ rancherk8s_type }}"
+  ansible.builtin.include_tasks: upgrade/node.yml
+  # One server at a time: avoids an etcd quorum race during upgrades.
+  throttle: 1
+  when: "'server' in group_names"
+  vars:
+    rancherk8s_upgrade_install_tasks: install/server.yml
 
-- name: "Start upgrade agent node for {{ rancherk8s_type }}"
-  ansible.builtin.include_tasks: install/agent.yml
-  loop: "{{ groups.agent }}"
-  when:
-    - "'agent' in group_names"
-    - hostvars[item].inventory_hostname == inventory_hostname
+- name: "Upgrade agent node for {{ rancherk8s_type }}"
+  ansible.builtin.include_tasks: upgrade/node.yml
+  throttle: "{{ rancherk8s_upgrade_agent_throttle }}"
+  when: "'agent' in group_names"
+  vars:
+    rancherk8s_upgrade_install_tasks: install/agent.yml

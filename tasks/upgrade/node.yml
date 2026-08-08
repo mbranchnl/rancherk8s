@@ -1,0 +1,55 @@
+---
+# Cordon + drain, upgrade, wait for Ready, uncordon - for one node. The
+# k8s API calls are delegated to server_primary, since agents (and this
+# node while its own service is restarting) don't reliably have their own
+# working kubeconfig.
+- name: Set upgrade facts
+  ansible.builtin.set_fact:
+    rancherk8s_upgrade_node_name: "{{ ansible_hostname }}"
+    # k3s server keeps the plain "k3s" unit name; every other combination
+    # (k3s agent, rke2 server/agent) is "<type>-<node_type>".
+    rancherk8s_service_name: >-
+      {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
+         else rancherk8s_type + '-' + rancherk8s_node_type }}
+
+- name: "Cordon and drain before upgrade: {{ rancherk8s_upgrade_node_name }}"
+  kubernetes.core.k8s_drain:
+    name: "{{ rancherk8s_upgrade_node_name }}"
+    kubeconfig: "{{ rancherk8s_kubeconfig }}"
+    state: drain
+    delete_options:
+      ignore_daemonsets: true
+      delete_emptydir_data: true
+      wait_timeout: "{{ rancherk8s_upgrade_drain_timeout }}"
+  delegate_to: "{{ groups['server_primary'][0] }}"
+
+- name: "Install the upgrade on {{ rancherk8s_upgrade_node_name }}"
+  ansible.builtin.include_tasks: "{{ rancherk8s_upgrade_install_tasks }}"
+
+- name: Restart the service to apply the upgrade
+  ansible.builtin.service:
+    name: "{{ rancherk8s_service_name }}"
+    state: restarted
+
+- name: "Wait for Ready: {{ rancherk8s_upgrade_node_name }}"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    name: "{{ rancherk8s_upgrade_node_name }}"
+    kubeconfig: "{{ rancherk8s_kubeconfig }}"
+  register: rancherk8s_node_status
+  until: >-
+    rancherk8s_node_status.resources | length > 0 and
+    (rancherk8s_node_status.resources[0].status.conditions
+      | selectattr('type', 'equalto', 'Ready')
+      | map(attribute='status') | first) == 'True'
+  retries: 60
+  delay: 5
+  delegate_to: "{{ groups['server_primary'][0] }}"
+
+- name: "Uncordon after upgrade: {{ rancherk8s_upgrade_node_name }}"
+  kubernetes.core.k8s_drain:
+    name: "{{ rancherk8s_upgrade_node_name }}"
+    kubeconfig: "{{ rancherk8s_kubeconfig }}"
+    state: uncordon
+  delegate_to: "{{ groups['server_primary'][0] }}"
