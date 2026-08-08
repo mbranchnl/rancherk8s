@@ -40,3 +40,15 @@
     - name: End play if odd amount of servers is provisioned
       ansible.builtin.meta: end_host
       when: groups['server'] | length | int is even
+
+    - name: Require an explicit API endpoint for multi-server (HA) clusters
+      ansible.builtin.assert:
+        that:
+          - rancherk8s_api_endpoint | length > 0
+        fail_msg: >-
+          {{ groups['server'] | length }} server nodes were provisioned but
+          rancherk8s_api_endpoint is unset. Set it to a kube-vip VIP (with
+          rancherk8s_api_vip_enabled: true) or to an externally managed load
+          balancer address before deploying a multi-server cluster.
+      when: groups['server'] | length > 1
+      run_once: true

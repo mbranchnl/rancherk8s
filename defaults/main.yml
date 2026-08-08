@@ -25,8 +25,19 @@ rancherk8s_major_version: "{{ rancherk8s_version | regex_replace('^v(\\d+\\.\\d+
 
 rancherk8s_artifact_path: /tmp/
 
+## High availability - control-plane API endpoint
+# VIP or external LB address for the control-plane API; required when more
+# than one server is provisioned. Added to tls-san automatically. Leave empty
+# for a single-server cluster: falls back to server_primary's own address.
+rancherk8s_api_endpoint: ''
+
+# Manage rancherk8s_api_endpoint as a kube-vip VIP instead of an external LB.
+rancherk8s_api_vip_enabled: false
+rancherk8s_api_vip_version: 'v1.2.2'
+# NIC kube-vip binds to on every control-plane node (assumes identical naming).
+rancherk8s_api_vip_interface: "{{ hostvars[groups['server_primary'][0]].ansible_default_ipv4.interface }}"
+
 ## Timings and resources
-rancherk8s_loadbalancer_ip: "{{ hostvars[groups['server_primary'][0]].ansible_default_ipv4.address }}"
 
 # # Timings, fill in in seconds
 # # Defaults are based on 'Medium Update and Average Reaction'

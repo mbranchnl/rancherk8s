@@ -1,16 +1,19 @@
+{% set rancherk8s_api_join_host = rancherk8s_api_endpoint if rancherk8s_api_endpoint else hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] %}
 {% if 'server_primary' not in group_names %}
 
 {% if rancherk8s_type == 'rke2' %}
-server: https://{{ hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] }}:9345
+server: https://{{ rancherk8s_api_join_host }}:9345
 {% else %}
-server: https://{{ hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] }}:6443
+server: https://{{ rancherk8s_api_join_host }}:6443
 {% endif %}
 token: {{ rancherk8s_token }}
 {% endif %}
+{%- set rancherk8s_all_san = (rancherk8s_tls_additional_san | default([]))
+    + ([rancherk8s_api_endpoint] if rancherk8s_api_endpoint else []) -%}
 {% if rancherk8s_node_type == "server" %}
-{% if rancherk8s_tls_additional_san is defined %}
+{% if rancherk8s_all_san | length > 0 %}
 tls-san:
-{% for ip in rancherk8s_tls_additional_san | default([]) %}
+{% for ip in rancherk8s_all_san %}
   - {{ ip }}
 {% endfor %}
 {% endif %}

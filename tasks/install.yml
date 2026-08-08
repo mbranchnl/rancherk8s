@@ -35,7 +35,7 @@
 
 - name: Create cluster with all server-nodes
   ansible.builtin.include_tasks: install/cluster.yml
-  # Join secondary servers one at a time (independent of the playbook's to avoid an etcd quorum race during bootstrap.
+  # One server at a time: avoids an etcd quorum race during bootstrap.
   throttle: 1
   when:
     - "'server_secondary' in group_names"

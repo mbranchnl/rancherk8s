@@ -12,6 +12,14 @@ KNOW ISSUES
 - When bootstrapping a cluster with autoupgrade on true it will fail due to a unknown rancherk8s_version,
 this is because the cluster is just bootstrapped. This will be fixed in future releases.
 
+High Availability
+------------------
+
+For a multi-server (HA) cluster, set `rancherk8s_api_endpoint` to a stable address for the
+control-plane API. Either let this role manage it as a floating VIP (`rancherk8s_api_vip_enabled:
+true`, kube-vip), or point it at an externally managed load balancer (leave that var false). The
+endpoint is added to tls-san automatically. Single-server clusters can leave it unset.
+
 Gateway API CRDs
 ----------------
 
@@ -30,6 +38,10 @@ Role Variables
 | rancherk8s_service_account        | no       | admin         | Name of the service account to create                                        |
 | rancherk8s_kubeconfig             | no       | /opt/rke2/rke2.yaml | Path to kubeconfig file                                               |
 | rancherk8s_artifact_path          | no       | /tmp/         | Path for temporary artifacts                                                 |
+| rancherk8s_api_endpoint           | no*      | ''            | VIP or external LB address for the control-plane API. *Required when more than one server is provisioned |
+| rancherk8s_api_vip_enabled        | no       | false         | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP              |
+| rancherk8s_api_vip_version        | no       | v1.2.2        | kube-vip image tag, used when rancherk8s_api_vip_enabled is true            |
+| rancherk8s_api_vip_interface      | no       | primary server's NIC | NIC kube-vip binds to for ARP on every control-plane node             |
 | rancherk8s_cni                    | no       | cilium        | CNI plugin to use (e.g., 'cilium', 'canal')                                 |
 | rancherk8s_allow_upgrade          | no       | true          | Allow cluster upgrades                                                       |
 | rancherk8s_auto_upgrade           | no       | false         | Enable automatic upgrades when a newer version is specified                  |
