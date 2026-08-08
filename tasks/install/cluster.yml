@@ -16,12 +16,15 @@
   ansible.builtin.set_fact:
     installer_env: "{{ dict(env_keys | zip(env_values)) }}"
   vars:
+    # RKE2's installer picks server/agent via INSTALL_RKE2_TYPE; k3s's via
+    # INSTALL_K3S_EXEC (INSTALL_K3S_TYPE only sets the systemd unit's Type=).
+    rancherk8s_install_type_key: "{{ 'INSTALL_RKE2_TYPE' if rancherk8s_type == 'rke2' else 'INSTALL_K3S_EXEC' }}"
     env_keys:
       - "INSTALL_{{ rancherk8s_type | upper }}_VERSION"
-      - "INSTALL_{{ rancherk8s_type | upper }}_TYPE"
+      - "{{ rancherk8s_install_type_key }}"
     env_values:
       - "{{ rancherk8s_version }}"
-      - "{{ rancherk8s_type }}"
+      - "{{ rancherk8s_node_type }}"
 
 - name: 'Run installer for {{ rancherk8s_type }}' # noqa command-instead-of-shell no-changed-when
   ansible.builtin.shell:
@@ -36,9 +39,15 @@
 
 - name: 'Start and enable service on primary node only for {{ rancherk8s_type }}'
   ansible.builtin.service:
-    name: "{{ 'rke2-' + rancherk8s_node_type if rancherk8s_type == 'rke2' else 'k3s' }}"
+    name: "{{ rancherk8s_service_name }}"
     enabled: true
     state: started
+  vars:
+    # k3s server keeps the plain "k3s" unit name; every other combination
+    # (k3s agent, rke2 server/agent) is "<type>-<node_type>".
+    rancherk8s_service_name: >-
+      {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
+         else rancherk8s_type + '-' + rancherk8s_node_type }}
 
 - name: Wait for kubernetes API to become available on server
   ansible.builtin.wait_for:
