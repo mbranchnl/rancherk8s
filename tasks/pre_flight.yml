@@ -1,9 +1,19 @@
 ---
-- name: End the play for not compatible hosts
+- name: Explain why an unsupported OS ends the play
+  ansible.builtin.debug:
+    msg: >-
+      {{ ansible_facts['os_family'] }} {{ ansible_distribution_major_version }}
+      is not supported - this role requires a RedHat-family OS, major
+      version 9 or newer.
+  when: >-
+    ansible_facts['os_family'] != 'RedHat' or
+    ansible_distribution_major_version | int < 9
+
+- name: End the play for hosts with an unsupported OS
   ansible.builtin.meta: end_play
-  when:
-    - ansible_facts['os_family'] != 'RedHat'
-    - ansible_distribution_major_version|int >= 9
+  when: >-
+    ansible_facts['os_family'] != 'RedHat' or
+    ansible_distribution_major_version | int < 9
 
 - name: Gather service facts
   ansible.builtin.service_facts:

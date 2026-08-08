@@ -37,7 +37,15 @@
       ansible.builtin.debug:
         msg: "Host {{ inventory_hostname }} is part of group(s): {{ group_names | join(', ') }}"
 
-    - name: End play if odd amount of servers is provisioned
+    - name: Explain why an even amount of servers ends the play
+      ansible.builtin.debug:
+        msg: >-
+          {{ groups['server'] | length }} server nodes were provisioned. An
+          odd number is required for etcd quorum (1, 3, 5, ...) - skipping
+          this host.
+      when: groups['server'] | length | int is even
+
+    - name: End play when an even amount of servers is provisioned
       ansible.builtin.meta: end_host
       when: groups['server'] | length | int is even
 
