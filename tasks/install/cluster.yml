@@ -14,10 +14,14 @@
 
 - name: Set dynamic environment variables
   ansible.builtin.set_fact:
-    installer_env: "{{ dict(env_keys | zip(env_values)) }}"
+    installer_env: >-
+      {{ dict(env_keys | zip(env_values)) | combine(rancherk8s_extra_env) }}
   vars:
     # Server/agent switch: INSTALL_RKE2_TYPE for rke2, INSTALL_K3S_EXEC for k3s.
     rancherk8s_install_type_key: "{{ 'INSTALL_RKE2_TYPE' if rancherk8s_type == 'rke2' else 'INSTALL_K3S_EXEC' }}"
+    # rke2 only: always install as a plain binary, same as k3s.
+    rancherk8s_extra_env: >-
+      {{ {'INSTALL_RKE2_METHOD': 'tar'} if rancherk8s_type == 'rke2' else {} }}
     env_keys:
       - "INSTALL_{{ rancherk8s_type | upper }}_VERSION"
       - "{{ rancherk8s_install_type_key }}"

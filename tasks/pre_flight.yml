@@ -19,6 +19,18 @@
   ansible.builtin.meta: end_play
   when: not rancherk8s_os_supported
 
+- name: Warn about SELinux and the rke2 tarball install method
+  ansible.builtin.debug:
+    msg: >-
+      SELinux is enforcing: this role always installs rke2 as a plain
+      binary, so the rke2-selinux policy is not pulled in automatically.
+      Provision it yourself (e.g. via a base image) before running this role.
+  when:
+    - rancherk8s_type == 'rke2'
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['selinux']['status'] | default('') == 'enabled'
+    - ansible_facts['selinux']['mode'] | default('') == 'enforcing'
+
 - name: Gather service facts
   ansible.builtin.service_facts:
 

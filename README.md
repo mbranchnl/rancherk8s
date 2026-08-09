@@ -24,6 +24,18 @@ API. Either let this role manage it as a floating VIP (`rancherk8s_api_vip_enabl
 kube-vip), or point it at an externally managed load balancer (leave that var false). Added to
 tls-san automatically. Single-server clusters can leave it unset.
 
+Install Method
+--------------
+
+Both k3s and RKE2 always install as a plain binary here - no OS package manager involved, on
+either RHEL-family or Ubuntu. That means identical, fully Ansible-controlled install/upgrade
+behavior on every supported distro, and no risk of `dnf`/`apt` silently upgrading the cluster
+outside of this role's control. The one trade-off: on RHEL-family, RKE2's alternative RPM
+install method pulls in the `rke2-selinux` policy package as a dependency, which the binary
+install does not. If you run with SELinux enforcing, provision that policy yourself (e.g. via
+your base image) before running this role - pre-flight warns if it detects this combination
+unhandled.
+
 Gateway API CRDs
 ----------------
 
