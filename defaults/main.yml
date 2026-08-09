@@ -56,6 +56,12 @@ rancherk8s_limited_resources:
   - kube-scheduler-memory=512M
   - etcd-cpu=250m
 
+## Firewall
+# Disable firewalld on cluster nodes; it conflicts with the iptables/eBPF
+# rules the CNI (Cilium) and kube-proxy-replacement manage themselves. Set to
+# false if you manage firewalld rules yourself.
+rancherk8s_manage_firewalld: true
+
 ## Networking - CNI - Cilium
 rancherk8s_cni: cilium
 rancherk8s_cni_l2_enabled: true

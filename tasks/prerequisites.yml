@@ -24,6 +24,15 @@
     path: /etc/sudoers
     validate: 'visudo -cf %s'
 
+- name: Disable firewalld  # noqa no-handler
+  when:
+    - rancherk8s_manage_firewalld
+    - "'firewalld.service' in ansible_facts.services"
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: false
+
 - name: Check if NetworkManager is used
   ansible.builtin.command: nmcli -t -f RUNNING general
   register: nmcli_output
