@@ -1,13 +1,11 @@
 ---
-# Cordon + drain, upgrade, wait for Ready, uncordon - for one node. The
-# k8s API calls are delegated to server_primary, since agents (and this
-# node while its own service is restarting) don't reliably have their own
-# working kubeconfig.
+# Cordon, drain, upgrade, wait for Ready, uncordon - one node at a time.
+# K8s API calls delegate to server_primary; agents (and this node, mid-restart)
+# don't reliably have their own working kubeconfig.
 - name: Set upgrade facts
   ansible.builtin.set_fact:
     rancherk8s_upgrade_node_name: "{{ ansible_hostname }}"
-    # k3s server keeps the plain "k3s" unit name; every other combination
-    # (k3s agent, rke2 server/agent) is "<type>-<node_type>".
+    # Service name: "k3s" for a k3s server, else "<type>-<node_type>".
     rancherk8s_service_name: >-
       {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
          else rancherk8s_type + '-' + rancherk8s_node_type }}

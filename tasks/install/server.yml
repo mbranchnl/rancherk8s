@@ -9,8 +9,7 @@
   ansible.builtin.set_fact:
     installer_env: "{{ dict(env_keys | zip(env_values)) }}"
   vars:
-    # RKE2's installer picks server/agent via INSTALL_RKE2_TYPE; k3s's via
-    # INSTALL_K3S_EXEC (INSTALL_K3S_TYPE only sets the systemd unit's Type=).
+    # Server/agent switch: INSTALL_RKE2_TYPE for rke2, INSTALL_K3S_EXEC for k3s.
     rancherk8s_install_type_key: "{{ 'INSTALL_RKE2_TYPE' if rancherk8s_type == 'rke2' else 'INSTALL_K3S_EXEC' }}"
     env_keys:
       - "INSTALL_{{ rancherk8s_type | upper }}_VERSION"
@@ -38,8 +37,7 @@
     state: started
   when: inventory_hostname in groups['server_primary']
   vars:
-    # k3s server keeps the plain "k3s" unit name; every other combination
-    # (k3s agent, rke2 server/agent) is "<type>-<node_type>".
+    # Service name: "k3s" for a k3s server, else "<type>-<node_type>".
     rancherk8s_service_name: >-
       {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
          else rancherk8s_type + '-' + rancherk8s_node_type }}

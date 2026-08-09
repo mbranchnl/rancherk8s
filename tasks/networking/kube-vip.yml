@@ -1,6 +1,5 @@
 ---
-# server_primary only, right after its own install, so the VIP is already
-# live before other servers/agents join.
+# server_primary only, right after install, so the VIP is live before joins.
 - name: Set manifests directory fact
   ansible.builtin.set_fact:
     rancherk8s_manifests_dir: "/var/lib/rancher/{{ rancherk8s_type }}/server/manifests"

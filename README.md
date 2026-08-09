@@ -2,23 +2,25 @@
 Description
 -----------
 
-This role can be used to deploy a rke2 cluster, the setup depends on the inventory you choose.
-The role checks if you have enough servers for a quorum and deploy's the cluster. 
-Deploying after the first node will be done sequencly to prevent issues with nodes joining at the exact same time.
+This role deploys an RKE2 or K3s cluster (set via `rancherk8s_type`); the topology depends on
+the inventory you choose. The role checks that you have enough servers for etcd quorum (an odd
+number) before deploying. Secondary servers join one at a time, never in parallel, to prevent
+etcd quorum issues.
 
-KNOW ISSUES
------------
+KNOWN ISSUES
+------------
 
-- When bootstrapping a cluster with autoupgrade on true it will fail due to a unknown rancherk8s_version,
-this is because the cluster is just bootstrapped. This will be fixed in future releases.
+- `rancherk8s_auto_upgrade` and `rancherk8s_auto_upgrade_grace_period` are not currently wired up
+  to any task - setting them has no effect. To upgrade, bump `rancherk8s_version` and re-run the
+  playbook; the role detects the version change on its own (see Common Operations below).
 
 High Availability
 ------------------
 
-For a multi-server (HA) cluster, set `rancherk8s_api_endpoint` to a stable address for the
-control-plane API. Either let this role manage it as a floating VIP (`rancherk8s_api_vip_enabled:
-true`, kube-vip), or point it at an externally managed load balancer (leave that var false). The
-endpoint is added to tls-san automatically. Single-server clusters can leave it unset.
+Multi-server (HA) clusters need `rancherk8s_api_endpoint`: a stable address for the control-plane
+API. Either let this role manage it as a floating VIP (`rancherk8s_api_vip_enabled: true`,
+kube-vip), or point it at an externally managed load balancer (leave that var false). Added to
+tls-san automatically. Single-server clusters can leave it unset.
 
 Gateway API CRDs
 ----------------
@@ -29,34 +31,84 @@ for example through the Envoy Gateway installation managed by the GitOps layer. 
 controller is enabled separately, its required CRDs must exist before that controller is enabled.
 
 Role Variables
----------
+--------------
 
-| Variable                      | Required | Default        | Description                                                                  |
-|------------------------------|----------|----------------|------------------------------------------------------------------------------|
-| rancherk8s_version                 | yes      | v1.31.3+rke2r1| RKE2 version to install/upgrade to                                           |
-| rancherk8s_node_type              | no       | server        | Node type: 'server' or 'agent'                                               |
-| rancherk8s_service_account        | no       | admin         | Name of the service account to create                                        |
-| rancherk8s_kubeconfig             | no       | /opt/rke2/rke2.yaml | Path to kubeconfig file                                               |
-| rancherk8s_artifact_path          | no       | /tmp/         | Path for temporary artifacts                                                 |
-| rancherk8s_api_endpoint           | no*      | ''            | VIP or external LB address for the control-plane API. *Required when more than one server is provisioned |
-| rancherk8s_api_vip_enabled        | no       | false         | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP              |
-| rancherk8s_api_vip_version        | no       | v1.2.2        | kube-vip image tag, used when rancherk8s_api_vip_enabled is true            |
-| rancherk8s_api_vip_interface      | no       | primary server's NIC | NIC kube-vip binds to for ARP on every control-plane node             |
-| rancherk8s_cni                    | no       | cilium        | CNI plugin to use (e.g., 'cilium', 'canal')                                 |
-| rancherk8s_allow_upgrade          | no       | true          | Allow cluster upgrades                                                       |
-| rancherk8s_auto_upgrade           | no       | false         | Enable automatic upgrades when a newer version is specified                  |
-| rancherk8s_auto_upgrade_grace_period | no    | 45           | Wait period (seconds) for API health check after upgrade                     |
-| rancherk8s_backup_schedule        | no       | "0 8,20 * * *"| Cron schedule for etcd backups                                              |
-| rancherk8s_backup_retention       | no       | "14"          | Number of days to retain backups                                            |
-| rancherk8s_install_tools          | no       | true          | Install additional tools (like Flux)                                         |
-| rancherk8s_flux_bootstrap         | no       | true          | Enable Flux GitOps toolkit installation                                      |
-| rancherk8s_flux_bootstrap_provider| no       | github        | Git provider for Flux                                                        |
-| rancherk8s_flux_bootstrap_token   | no       | -             | Authentication token for Git provider                                        |
-| rancherk8s_flux_bootstrap_owner   | no       | -             | Repository owner for Flux                                                    |
-| rancherk8s_flux_bootstrap_repo    | no       | fleet-infra   | Repository name for Flux                                                     |
-| rancherk8s_flux_bootstrap_branch  | no       | main          | Git branch to use                                                            |
-| rancherk8s_flux_bootstrap_path    | no       | ./clusters/my-cluster | Path within repository for cluster configuration                     |
-| rancherk8s_flux_bootstrap_type    | no       | personal      | Repository type ('personal' or 'organization')                               |
+### Core
+
+| Variable                     | Required | Default                           | Description                                                   |
+|-------------------------------|----------|------------------------------------|-----------------------------------------------------------------|
+| rancherk8s_type               | yes      | -                                  | Distro to install: 'rke2' or 'k3s'. No default, must be set per inventory |
+| rancherk8s_version             | yes      | v1.34.1+rke2r1                    | Version to install/upgrade to (bump this to trigger an upgrade) |
+| rancherk8s_node_type           | no       | server                            | Node role: 'server' or 'agent'                                 |
+| rancherk8s_service_account     | no       | admin                              | Name of the service account to create                          |
+| rancherk8s_kubeconfig          | no       | /etc/rancher/\<type>/\<type>.yaml | Path to the local kubeconfig file                              |
+| rancherk8s_fetch_kubeconfig    | no       | true                                | Fetch the primary server's kubeconfig to the control machine   |
+| rancherk8s_artifact_path       | no       | /tmp/                              | Path for temporary install artifacts                            |
+
+### High Availability
+
+| Variable                       | Required | Default              | Description                                                    |
+|----------------------------------|----------|-----------------------|--------------------------------------------------------------|
+| rancherk8s_api_endpoint          | no*      | ''                    | VIP or external LB address for the control-plane API. *Required when more than one server is provisioned |
+| rancherk8s_api_vip_enabled       | no       | false                 | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP |
+| rancherk8s_api_vip_version       | no       | v1.2.2                | kube-vip image tag, used when rancherk8s_api_vip_enabled is true |
+| rancherk8s_api_vip_interface     | no       | primary server's NIC  | NIC kube-vip binds to for ARP on every control-plane node      |
+
+### Firewall
+
+| Variable                    | Required | Default | Description                                                       |
+|-------------------------------|----------|---------|---------------------------------------------------------------------|
+| rancherk8s_manage_firewalld   | no       | true    | Disable firewalld (it conflicts with CNI-managed iptables/eBPF)     |
+
+### Networking / CNI
+
+| Variable                       | Required | Default | Description                                                 |
+|----------------------------------|----------|---------|----------------------------------------------------------------|
+| rancherk8s_cni                   | no       | cilium  | CNI plugin to use (e.g., 'cilium', 'canal')                     |
+| rancherk8s_cni_cilium_version     | no       | 1.18.7  | Cilium chart version                                            |
+| rancherk8s_cni_cilium_autoupgrade | no       | false   | Auto-detect and use the latest Cilium version instead            |
+| rancherk8s_cni_l2_enabled         | no       | true    | Enable Cilium L2 announcements                                   |
+| rancherk8s_cni_operator_replicas  | no       | 1       | Cilium operator replica count                                    |
+| rancherk8s_cni_gateway            | no       | true    | Reserve Cilium's Gateway API-adjacent settings (see Gateway API CRDs above - CRDs are not managed here) |
+
+### Tooling
+
+| Variable                | Required | Default  | Description                                                  |
+|----------------------------|----------|----------|------------------------------------------------------------------|
+| rancherk8s_install_tools   | no       | true     | Install additional tools (Flux, Helm, k9s, Cilium CLI)           |
+| rancherk8s_helm_version    | no       | ''       | Helm version to install. Empty installs the latest release       |
+| rancherk8s_k9s_version     | no       | v0.40.5  | k9s version to install. Empty installs the latest release        |
+
+### Upgrades & Backups
+
+| Variable                          | Required | Default        | Description                                                |
+|--------------------------------------|----------|-----------------|----------------------------------------------------------------|
+| rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set |
+| rancherk8s_upgrade_drain_timeout     | no       | 300             | Seconds to wait for a node to drain before an upgrade fails    |
+| rancherk8s_upgrade_agent_throttle    | no       | 1               | Agents upgraded concurrently (servers are always sequential)   |
+| rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                |
+| rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                              |
+| rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket             |
+| rancherk8s_backup_s3_endpoint        | no       | ''              | S3 endpoint URL, required when rancherk8s_backup_s3_enabled is true |
+| rancherk8s_backup_s3_bucket          | no       | ''              | S3 bucket name                                                   |
+| rancherk8s_backup_s3_region          | no       | ''              | S3 region, optional depending on your provider                  |
+| rancherk8s_backup_s3_folder          | no       | ''              | Optional folder/prefix within the bucket                        |
+| rancherk8s_backup_s3_access_key      | no       | ''              | S3 access key (use vault-encrypted inventory)                   |
+| rancherk8s_backup_s3_secret_key      | no       | ''              | S3 secret key (use vault-encrypted inventory)                   |
+
+### Flux GitOps
+
+| Variable                            | Required | Default               | Description                                            |
+|----------------------------------------|----------|-------------------------|-------------------------------------------------------------|
+| rancherk8s_flux_bootstrap              | no       | true                    | Enable Flux GitOps toolkit installation                     |
+| rancherk8s_flux_interval               | no       | 5m                      | Flux's sync interval                                         |
+| rancherk8s_flux_bootstrap_provider     | no       | github                  | Git provider for Flux                                        |
+| rancherk8s_flux_bootstrap_token        | no       | -                       | Authentication token for Git provider                        |
+| rancherk8s_flux_bootstrap_owner        | no       | -                       | Repository owner for Flux                                    |
+| rancherk8s_flux_bootstrap_repo         | no       | fleet-infra             | Repository name for Flux                                     |
+| rancherk8s_flux_bootstrap_branch       | no       | main                    | Git branch to use                                             |
+| rancherk8s_flux_bootstrap_path         | no       | ./clusters/my-cluster   | Path within repository for cluster configuration              |
+| rancherk8s_flux_bootstrap_type         | no       | personal                | Repository type ('personal' or 'organization')                |
 
 
 Usage Examples
@@ -67,6 +119,11 @@ Create an inventory file with server and agent nodes:
 
 ```yaml
 all:
+  vars:
+    rancherk8s_type: 'k3s' # or 'rke2', no default - required
+    # Required once you have more than one server (see High Availability above).
+    rancherk8s_api_endpoint: '10.0.0.50'
+    rancherk8s_api_vip_enabled: true
   children:
     server:
       hosts:
@@ -80,6 +137,7 @@ all:
       hosts:
         rke2-agent-01:
           ansible_user: root
+          rancherk8s_node_type: agent # defaults to 'server' otherwise
           labels:
             - role=worker
             - environment=prod
@@ -91,8 +149,7 @@ all:
 - name: Deploy RKE2 Cluster
   hosts: all
   roles:
-    - rke2-ansible
-
+    - rancherk8s
 ```
 
 ### Post-Deployment
@@ -109,8 +166,7 @@ kubectl get secret sa-admin-token -o jsonpath='{.data.*}' -n kube-system | base6
 
 2. Upgrading the cluster:
    - Update rancherk8s_version in your variables
-   - Set rancherk8s_auto_upgrade: true
-   - Run playbook
+   - Run playbook - the role detects the version change and drains/upgrades nodes on its own
 
 3. Adding custom labels:
    - Add labels in inventory as shown above

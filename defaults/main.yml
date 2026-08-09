@@ -26,9 +26,8 @@ rancherk8s_major_version: "{{ rancherk8s_version | regex_replace('^v(\\d+\\.\\d+
 rancherk8s_artifact_path: /tmp/
 
 ## High availability - control-plane API endpoint
-# VIP or external LB address for the control-plane API; required when more
-# than one server is provisioned. Added to tls-san automatically. Leave empty
-# for a single-server cluster: falls back to server_primary's own address.
+# VIP/LB address for the control-plane API. Required for >1 server (added
+# to tls-san); empty falls back to server_primary's own address.
 rancherk8s_api_endpoint: ''
 
 # Manage rancherk8s_api_endpoint as a kube-vip VIP instead of an external LB.
@@ -57,9 +56,8 @@ rancherk8s_limited_resources:
   - etcd-cpu=250m
 
 ## Firewall
-# Disable firewalld on cluster nodes; it conflicts with the iptables/eBPF
-# rules the CNI (Cilium) and kube-proxy-replacement manage themselves. Set to
-# false if you manage firewalld rules yourself.
+# Disable firewalld: it conflicts with CNI/kube-proxy-replacement iptables
+# rules. Set false if you manage firewalld yourself.
 rancherk8s_manage_firewalld: true
 
 ## Networking - CNI - Cilium
@@ -88,9 +86,8 @@ rancherk8s_upgrade_agent_throttle: 1
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"
 
-# Offsite etcd snapshot storage (S3-compatible). Snapshots stay local-only
-# when disabled - fine for a single node, risky once you depend on quorum
-# across multiple servers. Credentials: pass via vault-encrypted inventory.
+# Offsite etcd snapshots (S3-compatible); local-only when disabled - risky
+# once quorum spans multiple servers. Credentials: vault-encrypted inventory.
 rancherk8s_backup_s3_enabled: false
 rancherk8s_backup_s3_endpoint: ''
 rancherk8s_backup_s3_bucket: ''
