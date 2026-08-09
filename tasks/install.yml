@@ -24,10 +24,8 @@
 
 - name: 'Start installation agent node for {{ rancherk8s_type }}'
   ansible.builtin.include_tasks: install/agent.yml
-  loop: "{{ groups.agent }}"
   when:
     - "'agent' in group_names"
-    - hostvars[item].inventory_hostname == inventory_hostname
 
 - name: Store node-token
   ansible.builtin.set_fact:
