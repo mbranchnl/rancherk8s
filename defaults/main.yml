@@ -88,6 +88,17 @@ rancherk8s_upgrade_agent_throttle: 1
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"
 
+# Offsite etcd snapshot storage (S3-compatible). Snapshots stay local-only
+# when disabled - fine for a single node, risky once you depend on quorum
+# across multiple servers. Credentials: pass via vault-encrypted inventory.
+rancherk8s_backup_s3_enabled: false
+rancherk8s_backup_s3_endpoint: ''
+rancherk8s_backup_s3_bucket: ''
+rancherk8s_backup_s3_region: ''
+rancherk8s_backup_s3_folder: ''
+rancherk8s_backup_s3_access_key: ''
+rancherk8s_backup_s3_secret_key: ''
+
 ## Tooling like Flux
 rancherk8s_install_tools: true
 

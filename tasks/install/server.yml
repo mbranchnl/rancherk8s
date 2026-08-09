@@ -29,6 +29,7 @@
     src: config.yml.j2
     dest: '/etc/rancher/{{ rancherk8s_type }}/config.yaml'
     mode: '0644'
+  no_log: true  # contains the join token and, optionally, S3 backup credentials
 
 - name: 'Start and enable service on primary node only for {{ rancherk8s_type }}'
   ansible.builtin.service:

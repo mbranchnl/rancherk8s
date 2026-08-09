@@ -45,6 +45,19 @@ etcd-snapshot-compress: true
 {% if rancherk8s_backup_retention is defined %}
 etcd-snapshot-retention: "{{ rancherk8s_backup_retention }}"
 {% endif %}
+{% if rancherk8s_backup_s3_enabled %}
+etcd-s3: true
+etcd-s3-endpoint: "{{ rancherk8s_backup_s3_endpoint }}"
+etcd-s3-bucket: "{{ rancherk8s_backup_s3_bucket }}"
+etcd-s3-access-key: "{{ rancherk8s_backup_s3_access_key }}"
+etcd-s3-secret-key: "{{ rancherk8s_backup_s3_secret_key }}"
+{% if rancherk8s_backup_s3_region %}
+etcd-s3-region: "{{ rancherk8s_backup_s3_region }}"
+{% endif %}
+{% if rancherk8s_backup_s3_folder %}
+etcd-s3-folder: "{{ rancherk8s_backup_s3_folder }}"
+{% endif %}
+{% endif %}
 
 {% if rancherk8s_type == 'rke2' %}
 {% if rancherk8s_limited_resources is defined %}
