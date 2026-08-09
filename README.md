@@ -7,6 +7,8 @@ the inventory you choose. The role checks that you have enough servers for etcd 
 number) before deploying. Secondary servers join one at a time, never in parallel, to prevent
 etcd quorum issues.
 
+Supported OS: RHEL-family 9+ (RHEL, Rocky, AlmaLinux, ...) and Ubuntu 22.04+ LTS.
+
 KNOWN ISSUES
 ------------
 

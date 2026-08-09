@@ -1,19 +1,23 @@
 ---
+- name: Determine OS support
+  ansible.builtin.set_fact:
+    rancherk8s_os_supported: "{{ is_rhel or is_ubuntu }}"
+  vars:
+    major: "{{ ansible_distribution_major_version | int }}"
+    is_rhel: "{{ ansible_facts['os_family'] == 'RedHat' and major >= 9 }}"
+    is_ubuntu: "{{ ansible_facts['distribution'] == 'Ubuntu' and major >= 22 }}"
+
 - name: Explain why an unsupported OS ends the play
   ansible.builtin.debug:
     msg: >-
-      {{ ansible_facts['os_family'] }} {{ ansible_distribution_major_version }}
-      is not supported - this role requires a RedHat-family OS, major
-      version 9 or newer.
-  when: >-
-    ansible_facts['os_family'] != 'RedHat' or
-    ansible_distribution_major_version | int < 9
+      {{ ansible_facts['distribution'] }}
+      {{ ansible_distribution_major_version }} is not supported - this role
+      requires RHEL-family 9+ or Ubuntu 22.04+ LTS.
+  when: not rancherk8s_os_supported
 
 - name: End the play for hosts with an unsupported OS
   ansible.builtin.meta: end_play
-  when: >-
-    ansible_facts['os_family'] != 'RedHat' or
-    ansible_distribution_major_version | int < 9
+  when: not rancherk8s_os_supported
 
 - name: Gather service facts
   ansible.builtin.service_facts:

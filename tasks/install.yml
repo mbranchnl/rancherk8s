@@ -47,7 +47,11 @@
     remote_src: true
 
 - name: Disable automated updates of RKE2
-  when: rancherk8s_type == 'rke2'
+  # RKE2 only uses a yum/dnf repo on RedHat-family; elsewhere it's a tarball
+  # install with nothing for the OS package manager to auto-update.
+  when:
+    - rancherk8s_type == 'rke2'
+    - ansible_facts['os_family'] == 'RedHat'
   ansible.builtin.replace:
     path: /etc/yum.repos.d/rancher-rke2.repo
     regexp: '^enabled=1'

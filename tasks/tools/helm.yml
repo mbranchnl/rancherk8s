@@ -1,7 +1,7 @@
 ---
-# Ansible tasks to install Helm on Rocky Linux
-# Installs rancherk8s_helm_version when set, otherwise the latest release
-- name: Install Helm on Rocky Linux systems
+# Installs rancherk8s_helm_version when set, otherwise the latest release.
+# Uses the official get-helm-3 script, which is distro-agnostic.
+- name: Install Helm
   block:
     - name: Check if Helm is already installed
       ansible.builtin.command: helm version --short

@@ -33,6 +33,13 @@
     state: stopped
     enabled: false
 
+- name: Disable ufw
+  when:
+    - rancherk8s_manage_firewalld
+    - ansible_facts['os_family'] == 'Debian'
+  community.general.ufw:
+    state: disabled
+
 - name: Check if NetworkManager is used
   ansible.builtin.command: nmcli -t -f RUNNING general
   register: nmcli_output

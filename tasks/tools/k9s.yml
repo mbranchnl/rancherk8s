@@ -1,10 +1,31 @@
-- name: Install k9s
+---
+- name: Set k9s base download URL fact
+  ansible.builtin.set_fact:
+    rancherk8s_k9s_base_url: >-
+      {{ 'https://github.com/derailed/k9s/releases/download/'
+         ~ rancherk8s_k9s_version if rancherk8s_k9s_version | length > 0
+         else 'https://github.com/derailed/k9s/releases/latest/download' }}
+
+- name: Install k9s on RedHat-family systems
+  when: ansible_facts['os_family'] == 'RedHat'
   ansible.builtin.dnf:
-    name: "{{ 'https://github.com/derailed/k9s/releases/download/' ~ rancherk8s_k9s_version ~ '/k9s_linux_amd64.rpm'
-      if rancherk8s_k9s_version | length > 0
-      else 'https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.rpm' }}"
+    name: "{{ rancherk8s_k9s_base_url }}/k9s_linux_amd64.rpm"
     state: present
     disable_gpg_check: true
+
+- name: Install k9s on Debian-family systems
+  when: ansible_facts['os_family'] == 'Debian'
+  block:
+    - name: Download k9s .deb package
+      ansible.builtin.get_url:
+        url: "{{ rancherk8s_k9s_base_url }}/k9s_linux_amd64.deb"
+        dest: "{{ rancherk8s_artifact_path }}/k9s_linux_amd64.deb"
+        mode: '0644'
+
+    - name: Install k9s .deb package
+      ansible.builtin.apt:
+        deb: "{{ rancherk8s_artifact_path }}/k9s_linux_amd64.deb"
+        state: present
 
 - name: User xterm-256color for k9s
   ansible.builtin.copy:
