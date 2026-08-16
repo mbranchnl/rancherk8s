@@ -11,14 +11,22 @@
       {{ inventory_hostname }} has {{ ansible_facts['processor_vcpus'] }}
       CPU core(s), meeting the minimum of {{ rancherk8s_min_cpu_cores }}.
 
+- name: Compute effective minimum memory including allowed margin
+  ansible.builtin.set_fact:
+    rancherk8s_min_memory_mb_effective: >-
+      {{ (rancherk8s_min_memory_mb * (100 - rancherk8s_min_memory_margin_percent) / 100) | round | int }}
+
 - name: Require minimum memory
   ansible.builtin.assert:
     that:
-      - ansible_facts['memtotal_mb'] | int >= rancherk8s_min_memory_mb
+      - ansible_facts['memtotal_mb'] | int >= rancherk8s_min_memory_mb_effective | int
     fail_msg: >-
       {{ inventory_hostname }} has {{ ansible_facts['memtotal_mb'] }}MB of
-      memory, but rancherk8s_min_memory_mb is
-      {{ rancherk8s_min_memory_mb }}MB.
+      memory, but rancherk8s_min_memory_mb is {{ rancherk8s_min_memory_mb }}MB
+      (minimum {{ rancherk8s_min_memory_mb_effective }}MB with a
+      {{ rancherk8s_min_memory_margin_percent }}% margin).
     success_msg: >-
       {{ inventory_hostname }} has {{ ansible_facts['memtotal_mb'] }}MB of
-      memory, meeting the minimum of {{ rancherk8s_min_memory_mb }}MB.
+      memory, meeting the minimum of {{ rancherk8s_min_memory_mb_effective }}MB
+      ({{ rancherk8s_min_memory_mb }}MB with a
+      {{ rancherk8s_min_memory_margin_percent }}% margin).

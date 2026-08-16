@@ -28,6 +28,11 @@ rancherk8s_artifact_path: /tmp/
 ## Pre-flight resource requirements
 rancherk8s_min_cpu_cores: 2
 rancherk8s_min_memory_mb: 4096
+# Allowed shortfall below rancherk8s_min_memory_mb, as a percentage. Guests
+# report less than their configured RAM (kernel/firmware overhead, e.g.
+# crashkernel reservations), so a strict >= check fails on correctly sized
+# nodes. Set to 0 to require the full amount with no slack.
+rancherk8s_min_memory_margin_percent: 20
 
 ## High availability - control-plane API endpoint
 # VIP/LB address for the control-plane API. Required for >1 server (added
