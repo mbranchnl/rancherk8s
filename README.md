@@ -95,38 +95,38 @@ Role Variables
 
 ### Upgrades & Backups
 
-| Variable                          | Required | Default        | Description                                                |
-|--------------------------------------|----------|-----------------|----------------------------------------------------------------|
-| rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set |
-| rancherk8s_upgrade_drain_timeout     | no       | 300             | Seconds to wait for a node to drain before an upgrade fails    |
-| rancherk8s_upgrade_agent_throttle    | no       | 1               | Agents upgraded concurrently (servers are always sequential)   |
-| rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                |
-| rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                              |
-| rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket             |
+| Variable                             | Required | Default         | Description                                                         |
+|--------------------------------------|----------|-----------------|---------------------------------------------------------------------|
+| rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set  |
+| rancherk8s_upgrade_drain_timeout     | no       | 300             | Seconds to wait for a node to drain before an upgrade fails         |
+| rancherk8s_upgrade_agent_throttle    | no       | 1               | Agents upgraded concurrently (servers are always sequential)        |
+| rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                    |
+| rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                                 |
+| rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket                 |
 | rancherk8s_backup_s3_endpoint        | no       | ''              | S3 endpoint URL, required when rancherk8s_backup_s3_enabled is true |
-| rancherk8s_backup_s3_bucket          | no       | ''              | S3 bucket name                                                   |
-| rancherk8s_backup_s3_region          | no       | ''              | S3 region, optional depending on your provider                  |
-| rancherk8s_backup_s3_folder          | no       | ''              | Optional folder/prefix within the bucket                        |
-| rancherk8s_backup_s3_access_key      | no       | ''              | S3 access key (use vault-encrypted inventory)                   |
-| rancherk8s_backup_s3_secret_key      | no       | ''              | S3 secret key (use vault-encrypted inventory)                   |
+| rancherk8s_backup_s3_bucket          | no       | ''              | S3 bucket name                                                      |
+| rancherk8s_backup_s3_region          | no       | ''              | S3 region, optional depending on your provider                      |
+| rancherk8s_backup_s3_folder          | no       | ''              | Optional folder/prefix within the bucket                            |
+| rancherk8s_backup_s3_access_key      | no       | ''              | S3 access key (use vault-encrypted inventory)                       |
+| rancherk8s_backup_s3_secret_key      | no       | ''              | S3 secret key (use vault-encrypted inventory)                       |
 
 ### Flux GitOps
 
-| Variable                            | Required | Default               | Description                                            |
-|----------------------------------------|----------|-------------------------|-------------------------------------------------------------|
-| rancherk8s_flux_bootstrap              | no       | true                    | Enable Flux GitOps toolkit installation                     |
-| rancherk8s_flux_interval               | no       | 5m                      | Flux's sync interval                                         |
-| rancherk8s_flux_bootstrap_provider     | no       | github                  | Git provider for Flux                                        |
-| rancherk8s_flux_bootstrap_token        | no       | -                       | Authentication token for Git provider                        |
-| rancherk8s_flux_bootstrap_owner        | no       | -                       | Repository owner for Flux                                    |
-| rancherk8s_flux_bootstrap_repo         | no       | fleet-infra             | Repository name for Flux                                     |
-| rancherk8s_flux_bootstrap_branch       | no       | main                    | Git branch to use                                             |
-| rancherk8s_flux_bootstrap_path         | no       | ./clusters/my-cluster   | Path within repository for cluster configuration              |
-| rancherk8s_flux_bootstrap_type         | no       | personal                | Repository type ('personal' or 'organization')                |
-| rancherk8s_flux_sops_age_key_enabled   | no       | false                   | Push a SOPS age key into the cluster as a Secret for Flux's kustomize-controller |
-| rancherk8s_flux_sops_age_key_path      | no       | ~/.config/sops/age/keys.txt | Path to the age key file on the control machine, read at runtime (not stored in inventory) |
-| rancherk8s_flux_sops_age_key_namespace | no       | flux-system             | Namespace to create the Secret in                              |
-| rancherk8s_flux_sops_age_key_secret_name | no     | sops-age                | Secret name, must match the Kustomization's decryption.secretRef |
+| Variable                                 | Required | Default                     | Description                                                                                |
+|------------------------------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------|
+| rancherk8s_flux_bootstrap                | no       | true                        | Enable Flux GitOps toolkit installation                                                    |
+| rancherk8s_flux_interval                 | no       | 5m                          | Flux's sync interval                                                                       |
+| rancherk8s_flux_bootstrap_provider       | no       | github                      | Git provider for Flux                                                                      |
+| rancherk8s_flux_bootstrap_token          | no       | -                           | Authentication token for Git provider                                                      |
+| rancherk8s_flux_bootstrap_owner          | no       | -                           | Repository owner for Flux                                                                  |
+| rancherk8s_flux_bootstrap_repo           | no       | fleet-infra                 | Repository name for Flux                                                                   |
+| rancherk8s_flux_bootstrap_branch         | no       | main                        | Git branch to use                                                                          |
+| rancherk8s_flux_bootstrap_path           | no       | ./clusters/my-cluster       | Path within repository for cluster configuration                                           |
+| rancherk8s_flux_bootstrap_type           | no       | personal                    | Repository type ('personal' or 'organization')                                             |
+| rancherk8s_flux_sops_age_key_enabled     | no       | false                       | Push a SOPS age key into the cluster as a Secret for Flux's kustomize-controller           |
+| rancherk8s_flux_sops_age_key_path        | no       | ~/.config/sops/age/keys.txt | Path to the age key file on the control machine, read at runtime (not stored in inventory) |
+| rancherk8s_flux_sops_age_key_namespace   | no       | flux-system                 | Namespace to create the Secret in                                                          |
+| rancherk8s_flux_sops_age_key_secret_name | no       | sops-age                    | Secret name, must match the Kustomization's decryption.secretRef                           |
 
 
 Usage Examples
