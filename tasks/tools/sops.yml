@@ -4,6 +4,7 @@
     path: "{{ rancherk8s_flux_sops_age_key_path }}"
   register: rancherk8s_flux_sops_age_key_stat
   delegate_to: localhost
+  become: false
 
 - name: Require the age key to exist before installing it
   ansible.builtin.assert:
