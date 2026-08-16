@@ -32,11 +32,14 @@
     rancherk8s_token: "{{ hostvars[groups['server_primary'][0]]['node_token'].content | b64decode | regex_replace('\n', '') }}"
 
 - name: Create cluster with all server-nodes
-  ansible.builtin.include_tasks: install/cluster.yml
   # One server at a time: avoids an etcd quorum race during bootstrap.
+  # throttle is not a valid attribute on include_tasks, so it's applied to the wrapping block instead.
   throttle: 1
   when:
     - "'server_secondary' in group_names"
+  block:
+    - name: Run cluster install tasks
+      ansible.builtin.include_tasks: install/cluster.yml
 
 - name: Set RKE2 login-file permissions
   when: rancherk8s_type == 'rke2'
