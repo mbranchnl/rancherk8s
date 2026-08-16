@@ -1,15 +1,20 @@
 ---
 - name: "Upgrade server node for {{ rancherk8s_type }}"
-  ansible.builtin.include_tasks: upgrade/node.yml
   # One server at a time: avoids an etcd quorum race during upgrades.
+  # throttle is not a valid attribute on include_tasks, so it's applied to the wrapping block instead.
   throttle: 1
   when: "'server' in group_names"
   vars:
     rancherk8s_upgrade_install_tasks: install/server.yml
+  block:
+    - name: Run server upgrade tasks
+      ansible.builtin.include_tasks: upgrade/node.yml
 
 - name: "Upgrade agent node for {{ rancherk8s_type }}"
-  ansible.builtin.include_tasks: upgrade/node.yml
   throttle: "{{ rancherk8s_upgrade_agent_throttle }}"
   when: "'agent' in group_names"
   vars:
     rancherk8s_upgrade_install_tasks: install/agent.yml
+  block:
+    - name: Run agent upgrade tasks
+      ansible.builtin.include_tasks: upgrade/node.yml
