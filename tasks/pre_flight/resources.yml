@@ -1,0 +1,24 @@
+---
+- name: Require minimum CPU cores
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['processor_vcpus'] | int >= rancherk8s_min_cpu_cores
+    fail_msg: >-
+      {{ inventory_hostname }} has {{ ansible_facts['processor_vcpus'] }}
+      CPU core(s), but rancherk8s_min_cpu_cores is
+      {{ rancherk8s_min_cpu_cores }}.
+    success_msg: >-
+      {{ inventory_hostname }} has {{ ansible_facts['processor_vcpus'] }}
+      CPU core(s), meeting the minimum of {{ rancherk8s_min_cpu_cores }}.
+
+- name: Require minimum memory
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['memtotal_mb'] | int >= rancherk8s_min_memory_mb
+    fail_msg: >-
+      {{ inventory_hostname }} has {{ ansible_facts['memtotal_mb'] }}MB of
+      memory, but rancherk8s_min_memory_mb is
+      {{ rancherk8s_min_memory_mb }}MB.
+    success_msg: >-
+      {{ inventory_hostname }} has {{ ansible_facts['memtotal_mb'] }}MB of
+      memory, meeting the minimum of {{ rancherk8s_min_memory_mb }}MB.

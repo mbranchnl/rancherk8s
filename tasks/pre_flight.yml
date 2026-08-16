@@ -31,6 +31,9 @@
     - ansible_facts['selinux']['status'] | default('') == 'enabled'
     - ansible_facts['selinux']['mode'] | default('') == 'enforcing'
 
+- name: Check minimum CPU and memory
+  ansible.builtin.include_tasks: pre_flight/resources.yml
+
 - name: Gather service facts
   ansible.builtin.service_facts:
 
