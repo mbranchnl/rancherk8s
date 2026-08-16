@@ -4,7 +4,7 @@
 # don't reliably have their own working kubeconfig.
 - name: Set upgrade facts
   ansible.builtin.set_fact:
-    rancherk8s_upgrade_node_name: "{{ ansible_hostname }}"
+    rancherk8s_upgrade_node_name: "{{ ansible_facts['hostname'] }}"
     # Service name: "k3s" for a k3s server, else "<type>-<node_type>".
     rancherk8s_service_name: >-
       {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
