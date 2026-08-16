@@ -123,6 +123,10 @@ Role Variables
 | rancherk8s_flux_bootstrap_branch       | no       | main                    | Git branch to use                                             |
 | rancherk8s_flux_bootstrap_path         | no       | ./clusters/my-cluster   | Path within repository for cluster configuration              |
 | rancherk8s_flux_bootstrap_type         | no       | personal                | Repository type ('personal' or 'organization')                |
+| rancherk8s_flux_sops_age_key_enabled   | no       | false                   | Push a SOPS age key into the cluster as a Secret for Flux's kustomize-controller |
+| rancherk8s_flux_sops_age_key_path      | no       | ~/.config/sops/age/keys.txt | Path to the age key file on the control machine, read at runtime (not stored in inventory) |
+| rancherk8s_flux_sops_age_key_namespace | no       | flux-system             | Namespace to create the Secret in                              |
+| rancherk8s_flux_sops_age_key_secret_name | no     | sops-age                | Secret name, must match the Kustomization's decryption.secretRef |
 
 
 Usage Examples

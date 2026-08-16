@@ -50,6 +50,10 @@
         rancherk8s_flux_bootstrap: false
       when: rancherk8s_flux_check.stderr_lines is search('all checks passed')
 
+- name: Install SOPS age key for Flux decryption
+  ansible.builtin.include_tasks: tools/sops.yml
+  when: rancherk8s_flux_sops_age_key_enabled
+
 - name: Bootstrap fluxcd
   when: rancherk8s_flux_bootstrap
   block:

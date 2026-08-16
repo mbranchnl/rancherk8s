@@ -108,3 +108,13 @@ rancherk8s_flux_bootstrap_repo: 'fleet-infra'
 rancherk8s_flux_bootstrap_branch: 'main'
 rancherk8s_flux_bootstrap_path: './clusters/my-cluster'
 rancherk8s_flux_bootstrap_type: 'personal'
+
+# Install a SOPS age key into the cluster so Flux's kustomize-controller can
+# decrypt SOPS-encrypted manifests. The key is read from the control machine
+# (not stored in inventory) and pushed into a Secret, equivalent to:
+#   cat <path> | kubectl create secret generic <name> -n <namespace> \
+#     --from-file=age.agekey=/dev/stdin
+rancherk8s_flux_sops_age_key_enabled: false
+rancherk8s_flux_sops_age_key_path: '~/.config/sops/age/keys.txt'
+rancherk8s_flux_sops_age_key_namespace: 'flux-system'
+rancherk8s_flux_sops_age_key_secret_name: 'sops-age'

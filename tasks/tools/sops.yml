@@ -1,0 +1,38 @@
+---
+- name: "Check for age key at {{ rancherk8s_flux_sops_age_key_path }} on the control machine"
+  ansible.builtin.stat:
+    path: "{{ rancherk8s_flux_sops_age_key_path }}"
+  register: rancherk8s_flux_sops_age_key_stat
+  delegate_to: localhost
+
+- name: Require the age key to exist before installing it
+  ansible.builtin.assert:
+    that:
+      - rancherk8s_flux_sops_age_key_stat.stat.exists
+    fail_msg: >-
+      rancherk8s_flux_sops_age_key_enabled is true but
+      {{ rancherk8s_flux_sops_age_key_path }} does not exist on the control
+      machine.
+
+- name: "Ensure namespace {{ rancherk8s_flux_sops_age_key_namespace }} exists"
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ rancherk8s_flux_sops_age_key_namespace }}"
+    state: present
+    kubeconfig: '{{ rancherk8s_kubeconfig }}'
+
+- name: "Install age key as {{ rancherk8s_flux_sops_age_key_secret_name }} Secret"
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: '{{ rancherk8s_kubeconfig }}'
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ rancherk8s_flux_sops_age_key_secret_name }}"
+        namespace: "{{ rancherk8s_flux_sops_age_key_namespace }}"
+      type: Opaque
+      stringData:
+        age.agekey: "{{ lookup('ansible.builtin.file', rancherk8s_flux_sops_age_key_path) }}"
+  no_log: true  # contains the private age key
