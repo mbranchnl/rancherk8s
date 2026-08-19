@@ -79,6 +79,7 @@ Role Variables
 | Variable                              | Required | Default | Description                                                                 |
 |----------------------------------------|----------|---------|-------------------------------------------------------------------------------|
 | rancherk8s_default_local_storage_path  | no       | ''      | Path on the server node used by the built-in local-path-provisioner for the default 'local-path' StorageClass. Empty leaves it unset, falling back to the upstream k3s/rke2 default |
+| rancherk8s_local_storage_provisioner_enabled | no | false   | Enable k3s's built-in 'local-storage' addon (local-path-provisioner); disabled by default, Flux provides it. No-op on rke2 |
 
 ### Networking / CNI
 

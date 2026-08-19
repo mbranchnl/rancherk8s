@@ -75,6 +75,10 @@ rancherk8s_manage_firewalld: true
 # falling back to the upstream k3s/rke2 default.
 rancherk8s_default_local_storage_path: ''
 
+# Disables k3s's built-in local-path-provisioner ('local-storage' addon);
+# Flux provides it instead. No-op on rke2, which doesn't bundle this addon.
+rancherk8s_local_storage_provisioner_enabled: false
+
 ## Networking - CNI - Cilium
 rancherk8s_cni: cilium
 rancherk8s_cni_l2_enabled: true

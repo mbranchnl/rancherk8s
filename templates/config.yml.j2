@@ -34,11 +34,19 @@ cni: cilium
 flannel-backend: "none"
 disable-network-policy: true
 cluster-init: true
-disable:
-  - servicelb
-  - traefik
 {% endif %}
 disable-kube-proxy: true
+{% endif %}
+
+{% if rancherk8s_type != 'rke2' %}
+{%- set rancherk8s_k3s_disable = (['servicelb', 'traefik'] if rancherk8s_cni == 'cilium' else [])
+    + ([] if rancherk8s_local_storage_provisioner_enabled else ['local-storage']) -%}
+{% if rancherk8s_k3s_disable | length > 0 %}
+disable:
+{% for item in rancherk8s_k3s_disable %}
+  - {{ item }}
+{% endfor %}
+{% endif %}
 {% endif %}
 
 {% if rancherk8s_backup_schedule is defined %}
