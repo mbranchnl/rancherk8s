@@ -69,6 +69,12 @@ rancherk8s_limited_resources:
 # iptables rules. Set false if you manage the OS firewall yourself.
 rancherk8s_manage_firewalld: true
 
+## Storage
+# Path on the server node where the built-in local-path-provisioner stores
+# PV data for the default 'local-path' StorageClass. Empty leaves it unset,
+# falling back to the upstream k3s/rke2 default.
+rancherk8s_default_local_storage_path: ''
+
 ## Networking - CNI - Cilium
 rancherk8s_cni: cilium
 rancherk8s_cni_l2_enabled: true

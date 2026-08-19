@@ -74,6 +74,12 @@ Role Variables
 |-------------------------------|----------|---------|---------------------------------------------------------------------|
 | rancherk8s_manage_firewalld   | no       | true    | Disable firewalld (it conflicts with CNI-managed iptables/eBPF)     |
 
+### Storage
+
+| Variable                              | Required | Default | Description                                                                 |
+|----------------------------------------|----------|---------|-------------------------------------------------------------------------------|
+| rancherk8s_default_local_storage_path  | no       | ''      | Path on the server node used by the built-in local-path-provisioner for the default 'local-path' StorageClass. Empty leaves it unset, falling back to the upstream k3s/rke2 default |
+
 ### Networking / CNI
 
 | Variable                       | Required | Default | Description                                                 |
