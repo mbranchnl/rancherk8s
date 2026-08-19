@@ -72,7 +72,8 @@ rancherk8s_manage_firewalld: true
 ## Storage
 # Path on the server node where the built-in local-path-provisioner stores
 # PV data for the default 'local-path' StorageClass. Empty leaves it unset,
-# falling back to the upstream k3s/rke2 default.
+# falling back to the upstream k3s/rke2 default. Ignored while
+# rancherk8s_local_storage_provisioner_enabled is false.
 rancherk8s_default_local_storage_path: ''
 
 # Disables k3s's built-in local-path-provisioner ('local-storage' addon);

@@ -17,7 +17,7 @@ tls-san:
   - {{ ip }}
 {% endfor %}
 {% endif %}
-{% if rancherk8s_default_local_storage_path %}
+{% if rancherk8s_default_local_storage_path and rancherk8s_local_storage_provisioner_enabled %}
 default-local-storage-path: "{{ rancherk8s_default_local_storage_path }}"
 {% endif %}
 {% endif %}
