@@ -1,4 +1,35 @@
 
+Table of Contents
+------------------
+
+- [Description](#description)
+- [KNOWN ISSUES](#known-issues)
+- [High Availability](#high-availability)
+- [Install Method](#install-method)
+- [Gateway API CRDs](#gateway-api-crds)
+- [Role Variables](#role-variables)
+  - [Core](#core)
+  - [Pre-flight resource requirements](#pre-flight-resource-requirements)
+  - [High Availability and Scheduling](#high-availability-and-scheduling)
+  - [Firewall](#firewall)
+  - [Storage](#storage)
+  - [Networking / CNI](#networking--cni)
+  - [Tooling](#tooling)
+  - [Upgrades & Backups](#upgrades--backups)
+  - [Flux GitOps](#flux-gitops)
+- [Usage Examples](#usage-examples)
+  - [Example Inventory](#example-inventory)
+  - [Scenario Examples](#scenario-examples)
+    - [1. Single node](#1-single-node)
+    - [2. Three masters only (no dedicated workers)](#2-three-masters-only-no-dedicated-workers)
+    - [3. Single master, multiple workers](#3-single-master-multiple-workers)
+    - [4. Three masters (control-plane only), multiple workers](#4-three-masters-control-plane-only-multiple-workers)
+    - [5. Three masters (schedulable), multiple workers](#5-three-masters-schedulable-multiple-workers)
+  - [Example Playbook](#example-playbook)
+  - [Rollout](#rollout)
+  - [Post-Deployment](#post-deployment)
+  - [Common Operations](#common-operations)
+
 Description
 -----------
 
@@ -60,16 +91,6 @@ Role Variables
 | rancherk8s_cluster_name        | no       | ''                                  | Cluster/context/user name in the fetched kubeconfig and its filename (~/.kube/\<name>.yml). Empty falls back to the primary server's hostname |
 | rancherk8s_artifact_path       | no       | /tmp/                              | Path for temporary install artifacts                            |
 
-### High Availability
-
-| Variable                       | Required | Default              | Description                                                    |
-|----------------------------------|----------|-----------------------|--------------------------------------------------------------|
-| rancherk8s_api_endpoint          | no*      | ''                    | VIP or external LB address for the control-plane API. *Required when more than one server is provisioned |
-| rancherk8s_api_vip_enabled       | no       | false                 | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP |
-| rancherk8s_api_vip_version       | no       | v1.2.2                | kube-vip image tag, used when rancherk8s_api_vip_enabled is true |
-| rancherk8s_api_vip_interface     | no       | primary server's NIC  | NIC kube-vip binds to for ARP on every control-plane node      |
-| rancherk8s_server_schedulable    | no       | true                  | Whether `server` nodes run regular workloads. Set false to dedicate them to etcd/control-plane only - pair with `agent` nodes so the cluster has somewhere to schedule workloads |
-
 ### Pre-flight resource requirements
 
 | Variable                                     | Required | Default | Description                                                                 |
@@ -79,6 +100,16 @@ Role Variables
 | rancherk8s_min_memory_margin_percent          | no       | 20      | Allowed shortfall below the memory minimum, as a percentage (guests under-report RAM) |
 | rancherk8s_control_plane_only_min_cpu_cores   | no       | 2       | CPU floor used instead, on a `server` with `rancherk8s_server_schedulable: false` |
 | rancherk8s_control_plane_only_min_memory_mb   | no       | 2048    | Memory floor used instead, on a `server` with `rancherk8s_server_schedulable: false` |
+
+### High Availability and Scheduling
+
+| Variable                       | Required | Default              | Description                                                    |
+|----------------------------------|----------|-----------------------|--------------------------------------------------------------|
+| rancherk8s_api_endpoint          | no*      | ''                    | VIP or external LB address for the control-plane API. *Required when more than one server is provisioned |
+| rancherk8s_api_vip_enabled       | no       | false                 | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP |
+| rancherk8s_api_vip_version       | no       | v1.2.2                | kube-vip image tag, used when rancherk8s_api_vip_enabled is true |
+| rancherk8s_api_vip_interface     | no       | primary server's NIC  | NIC kube-vip binds to for ARP on every control-plane node      |
+| rancherk8s_server_schedulable    | no       | true                  | Whether `server` nodes run regular workloads. Set false to dedicate them to etcd/control-plane only - pair with `agent` nodes so the cluster has somewhere to schedule workloads |
 
 ### Firewall
 
