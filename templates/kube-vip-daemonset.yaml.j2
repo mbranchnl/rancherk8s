@@ -21,11 +21,12 @@ spec:
       hostNetwork: true
       nodeSelector:
         node-role.kubernetes.io/control-plane: "true"
+      # Must run before the node is Ready: it has to be reachable before CNI
+      # (Cilium connects to the API through this VIP), and the node only
+      # turns Ready once CNI is up. Tolerate everything, same as other
+      # network-bootstrap DaemonSets (kube-proxy, CNI agents, ...).
       tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
+        - operator: Exists
       hostAliases:
         - ip: 127.0.0.1
           hostnames:
