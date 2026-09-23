@@ -17,6 +17,9 @@ rancherk8s_service_account: admin
 
 rancherk8s_kubeconfig: "/etc/rancher/{{ rancherk8s_type }}/{{ rancherk8s_type }}.yaml"
 rancherk8s_fetch_kubeconfig: true
+# Cluster/context/user name used in the fetched kubeconfig and its filename
+# (~/.kube/<name>.yml). Empty falls back to the primary server's hostname.
+rancherk8s_cluster_name: ''
 
 rancherk8s_version_installed: "{{ rancherk8s_version }}"
 rancherk8s_version_defined: "{{ rancherk8s_version }}"
