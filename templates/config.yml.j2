@@ -20,6 +20,14 @@ tls-san:
 {% if rancherk8s_default_local_storage_path and rancherk8s_local_storage_provisioner_enabled %}
 default-local-storage-path: "{{ rancherk8s_default_local_storage_path }}"
 {% endif %}
+{% if not rancherk8s_server_schedulable %}
+{% if rancherk8s_type == 'rke2' %}
+disable-scheduling: true
+{% else %}
+node-taint:
+  - "node-role.kubernetes.io/control-plane:NoSchedule"
+{% endif %}
+{% endif %}
 {% endif %}
 
 write-kubeconfig-mode: 644

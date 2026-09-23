@@ -60,3 +60,15 @@
           balancer address before deploying a multi-server cluster.
       when: groups['server'] | length > 1
       run_once: true
+
+    - name: Require at least one schedulable node for regular workloads
+      ansible.builtin.assert:
+        that:
+          - groups['agent'] | length > 0
+            or groups['server'] | map('extract', hostvars, 'rancherk8s_server_schedulable') | select | list | length > 0
+        fail_msg: >-
+          Every server has rancherk8s_server_schedulable: false and there are
+          no agent nodes - this cluster would have nothing able to run
+          regular workloads. Add agent nodes or set
+          rancherk8s_server_schedulable: true on at least one server.
+      run_once: true

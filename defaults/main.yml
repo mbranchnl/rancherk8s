@@ -36,6 +36,12 @@ rancherk8s_min_memory_mb: 4096
 # nodes. Set to 0 to require the full amount with no slack.
 rancherk8s_min_memory_margin_percent: 20
 
+# Lower resource floor for a server node with rancherk8s_server_schedulable set
+# to false: it only runs etcd and the control-plane, no regular workloads.
+# Ignored on agents and on schedulable servers.
+rancherk8s_control_plane_only_min_cpu_cores: 2
+rancherk8s_control_plane_only_min_memory_mb: 2048
+
 ## High availability - control-plane API endpoint
 # VIP/LB address for the control-plane API. Required for >1 server (added
 # to tls-san); empty falls back to server_primary's own address.
@@ -46,6 +52,12 @@ rancherk8s_api_vip_enabled: false
 rancherk8s_api_vip_version: 'v1.2.2'
 # NIC kube-vip binds to on every control-plane node (assumes identical naming).
 rancherk8s_api_vip_interface: "{{ hostvars[groups['server_primary'][0]].ansible_facts.default_ipv4.interface }}"
+
+## Scheduling
+# Whether server (control-plane) nodes run regular workloads. Set to false to
+# dedicate servers to etcd/control-plane only - pair with agent nodes so the
+# cluster has somewhere to schedule workloads. No effect on agent nodes.
+rancherk8s_server_schedulable: true
 
 ## Timings and resources
 

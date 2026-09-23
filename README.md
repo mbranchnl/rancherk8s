@@ -68,6 +68,17 @@ Role Variables
 | rancherk8s_api_vip_enabled       | no       | false                 | Let this role manage rancherk8s_api_endpoint as a kube-vip VIP |
 | rancherk8s_api_vip_version       | no       | v1.2.2                | kube-vip image tag, used when rancherk8s_api_vip_enabled is true |
 | rancherk8s_api_vip_interface     | no       | primary server's NIC  | NIC kube-vip binds to for ARP on every control-plane node      |
+| rancherk8s_server_schedulable    | no       | true                  | Whether `server` nodes run regular workloads. Set false to dedicate them to etcd/control-plane only - pair with `agent` nodes so the cluster has somewhere to schedule workloads |
+
+### Pre-flight resource requirements
+
+| Variable                                     | Required | Default | Description                                                                 |
+|-----------------------------------------------|----------|---------|-------------------------------------------------------------------------------|
+| rancherk8s_min_cpu_cores                      | no       | 2       | Minimum CPU cores required per node                                          |
+| rancherk8s_min_memory_mb                      | no       | 4096    | Minimum memory (MB) required per node                                        |
+| rancherk8s_min_memory_margin_percent          | no       | 20      | Allowed shortfall below the memory minimum, as a percentage (guests under-report RAM) |
+| rancherk8s_control_plane_only_min_cpu_cores   | no       | 2       | CPU floor used instead, on a `server` with `rancherk8s_server_schedulable: false` |
+| rancherk8s_control_plane_only_min_memory_mb   | no       | 2048    | Memory floor used instead, on a `server` with `rancherk8s_server_schedulable: false` |
 
 ### Firewall
 
@@ -141,33 +152,13 @@ Usage Examples
 ----------------
 
 ### Example Inventory
-Create an inventory file with server and agent nodes:
-
-```yaml
-all:
-  vars:
-    rancherk8s_type: 'k3s' # or 'rke2', no default - required
-    # Required once you have more than one server (see High Availability above).
-    rancherk8s_api_endpoint: '10.0.0.50'
-    rancherk8s_api_vip_enabled: true
-  children:
-    server:
-      hosts:
-        rke2-server-01:
-          ansible_user: root
-        rke2-server-02:
-          ansible_user: root
-        rke2-server-03:
-          ansible_user: root
-    agent:
-      hosts:
-        rke2-agent-01:
-          ansible_user: root
-          rancherk8s_node_type: agent # defaults to 'server' otherwise
-          labels:
-            - role=worker
-            - environment=prod
-```
+Node role is decided purely by each host's `rancherk8s_node_type` (defaults to `server`;
+set `agent` explicitly on worker hosts). The role builds its own internal `server`/`agent`/
+`server_primary`/`server_secondary` groups from that var during pre-flight - your
+inventory's own group names are not read for this and can be anything you like (`masters`/
+`workers`, `control-plane`/`workers`, ...). The scenario examples below happen to name
+their inventory groups `server`/`agent` for readability, matching the role's own group
+names, but that's a convention, not a requirement.
 
 For larger inventories, split shared cluster vars into `group_vars/<group>.yml` instead of
 inlining them under `all.vars`:
@@ -190,6 +181,163 @@ rancherk8s_type: 'k3s'
 rancherk8s_cluster_name: 'my-cluster'   # ~/.kube/<name>.yml instead of the primary node's hostname
 rancherk8s_api_endpoint: '10.0.0.50'
 rancherk8s_api_vip_enabled: true
+```
+
+### Scenario Examples
+
+Five common topologies, single-file inventory style (`all.vars` + `children`). Swap
+`rancherk8s_type` for `rke2` where needed; everything else applies to both. Any inventory
+with more than one `server` host needs `rancherk8s_api_endpoint` (see High Availability
+above) - the role's pre-flight fails fast otherwise, and also rejects an even server
+count (etcd quorum).
+
+#### 1. Single node
+One host, no HA endpoint needed - `server` is implied and the node runs everything
+(control plane, etcd, workloads).
+
+```yaml
+all:
+  vars:
+    rancherk8s_type: 'k3s'
+  children:
+    server:
+      hosts:
+        node-01:
+          ansible_host: 10.0.0.11
+          ansible_user: root
+```
+
+#### 2. Three masters only (no dedicated workers)
+HA control plane with no separate worker pool. `rancherk8s_server_schedulable` defaults
+to `true`, so these three servers also run regular workloads - there's nowhere else for
+pods to go without agents.
+
+```yaml
+all:
+  vars:
+    rancherk8s_type: 'k3s'
+    rancherk8s_api_endpoint: '10.0.0.50'
+    rancherk8s_api_vip_enabled: true
+  children:
+    server:
+      hosts:
+        node-01:
+          ansible_host: 10.0.0.11
+          ansible_user: root
+        node-02:
+          ansible_host: 10.0.0.12
+          ansible_user: root
+        node-03:
+          ansible_host: 10.0.0.13
+          ansible_user: root
+```
+
+#### 3. Single master, multiple workers
+One server, no HA endpoint needed since there's only one server to join against.
+
+```yaml
+all:
+  vars:
+    rancherk8s_type: 'k3s'
+  children:
+    server:
+      hosts:
+        node-01:
+          ansible_host: 10.0.0.11
+          ansible_user: root
+    agent:
+      hosts:
+        node-02:
+          ansible_host: 10.0.0.21
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-03:
+          ansible_host: 10.0.0.22
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-04:
+          ansible_host: 10.0.0.23
+          ansible_user: root
+          rancherk8s_node_type: agent
+```
+
+#### 4. Three masters (control-plane only), multiple workers
+`rancherk8s_server_schedulable: false` taints/cordons the servers (k3s: `node-taint`;
+RKE2: `disable-scheduling`) so only etcd and the control plane run there - all regular
+workloads land on the `agent` nodes. Pre-flight also refuses to provision a cluster
+where every server is unschedulable and no agents are defined.
+
+```yaml
+all:
+  vars:
+    rancherk8s_type: 'k3s'
+    rancherk8s_api_endpoint: '10.0.0.50'
+    rancherk8s_api_vip_enabled: true
+    rancherk8s_server_schedulable: false
+  children:
+    server:
+      hosts:
+        node-01:
+          ansible_host: 10.0.0.11
+          ansible_user: root
+        node-02:
+          ansible_host: 10.0.0.12
+          ansible_user: root
+        node-03:
+          ansible_host: 10.0.0.13
+          ansible_user: root
+    agent:
+      hosts:
+        node-04:
+          ansible_host: 10.0.0.21
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-05:
+          ansible_host: 10.0.0.22
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-06:
+          ansible_host: 10.0.0.23
+          ansible_user: root
+          rancherk8s_node_type: agent
+```
+
+#### 5. Three masters (schedulable), multiple workers
+HA control plane where the three servers also run workloads alongside dedicated
+agents - `rancherk8s_server_schedulable` left at its default (`true`).
+
+```yaml
+all:
+  vars:
+    rancherk8s_type: 'k3s'
+    rancherk8s_api_endpoint: '10.0.0.50'
+    rancherk8s_api_vip_enabled: true
+  children:
+    server:
+      hosts:
+        node-01:
+          ansible_host: 10.0.0.11
+          ansible_user: root
+        node-02:
+          ansible_host: 10.0.0.12
+          ansible_user: root
+        node-03:
+          ansible_host: 10.0.0.13
+          ansible_user: root
+    agent:
+      hosts:
+        node-04:
+          ansible_host: 10.0.0.21
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-05:
+          ansible_host: 10.0.0.22
+          ansible_user: root
+          rancherk8s_node_type: agent
+        node-06:
+          ansible_host: 10.0.0.23
+          ansible_user: root
+          rancherk8s_node_type: agent
 ```
 
 ### Example Playbook
