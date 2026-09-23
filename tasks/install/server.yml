@@ -1,9 +1,15 @@
 ---
+# rancherk8s_active_node: real target node - inventory_hostname stays on the driver when delegated.
+- name: Resolve the node actually being acted on
+  ansible.builtin.set_fact:
+    rancherk8s_active_node: "{{ rancherk8s_upgrade_target | default(inventory_hostname) }}"
+
 - name: 'Download install.sh from {{ rancherk8s_type }}.io'  # noqa name[template]
   ansible.builtin.get_url:
     url: https://get.{{ rancherk8s_type }}.io/
     dest: "{{ rancherk8s_artifact_path }}/install.sh"
     mode: '0755'
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: Set dynamic environment variables
   ansible.builtin.set_fact:
@@ -20,12 +26,13 @@
       - "{{ rancherk8s_install_type_key }}"
     env_values:
       - "{{ rancherk8s_version }}"
-      - "{{ rancherk8s_node_type }}"
+      - "{{ hostvars[rancherk8s_active_node].rancherk8s_node_type }}"
 
 - name: 'Run installer for {{ rancherk8s_type }}' # noqa command-instead-of-shell no-changed-when
   ansible.builtin.shell:
     cmd: "{{ rancherk8s_artifact_path }}/install.sh"
   environment: "{{ installer_env }}"
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: 'Set config-file for {{ rancherk8s_type }}'
   ansible.builtin.template:
@@ -33,18 +40,20 @@
     dest: '/etc/rancher/{{ rancherk8s_type }}/config.yaml'
     mode: '0644'
   no_log: true  # contains the join token and, optionally, S3 backup credentials
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: 'Start and enable service on primary node only for {{ rancherk8s_type }}'
   ansible.builtin.service:
     name: "{{ rancherk8s_service_name }}"
     enabled: true
     state: started
-  when: inventory_hostname in groups['server_primary']
+  when: rancherk8s_active_node in groups['server_primary']
   vars:
     # Service name: "k3s" for a k3s server, else "<type>-<node_type>".
     rancherk8s_service_name: >-
-      {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
-         else rancherk8s_type + '-' + rancherk8s_node_type }}
+      {{ 'k3s' if rancherk8s_type == 'k3s' and hostvars[rancherk8s_active_node].rancherk8s_node_type == 'server'
+         else rancherk8s_type + '-' + hostvars[rancherk8s_active_node].rancherk8s_node_type }}
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: Wait for kubernetes API to become available on server
   ansible.builtin.wait_for:
@@ -53,12 +62,13 @@
     delay: 10
   register: rancherk8s_api_check
   when:
-    - inventory_hostname in groups['server_primary']
+    - rancherk8s_active_node in groups['server_primary']
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: "Can't connect to rke2-api end play"
   ansible.builtin.meta: end_play
   when:
-    - inventory_hostname in groups['server_primary']
+    - rancherk8s_active_node in groups['server_primary']
     - rancherk8s_api_check.failed
 
 - name: Wait for kubernetes API to become ready
@@ -73,7 +83,8 @@
   retries: 60
   delay: 5
   when:
-    - inventory_hostname in groups['server_primary']
+    - rancherk8s_active_node in groups['server_primary']
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: Set node-token path
   when: rancherk8s_type == 'rke2'
@@ -89,8 +100,10 @@
   ansible.builtin.wait_for:
     path: '{{ rancherk8s_node_token }}'
     timeout: 30
+  delegate_to: "{{ rancherk8s_active_node }}"
 
 - name: Read and register node-token from first server
   ansible.builtin.slurp:
     src: '{{ rancherk8s_node_token }}'
   register: node_token
+  delegate_to: "{{ rancherk8s_active_node }}"

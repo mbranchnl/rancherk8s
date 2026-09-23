@@ -141,7 +141,6 @@ Role Variables
 |--------------------------------------|----------|-----------------|---------------------------------------------------------------------|
 | rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set  |
 | rancherk8s_upgrade_drain_timeout     | no       | 300             | Seconds to wait for a node to drain before an upgrade fails         |
-| rancherk8s_upgrade_agent_throttle    | no       | 1               | Agents upgraded concurrently (servers are always sequential)        |
 | rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                    |
 | rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                                 |
 | rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket                 |

@@ -1,14 +1,18 @@
 ---
 # Cordon, drain, upgrade, wait for Ready, uncordon - one node at a time.
-# K8s API calls delegate to server_primary; agents (and this node, mid-restart)
-# don't reliably have their own working kubeconfig.
+# Driven via a loop from tasks/main.yml: rancherk8s_upgrade_target names the
+# node being upgraded, since inventory_hostname/ansible_facts here stay on
+# the driver (server_primary), not the node actually being acted on.
 - name: Set upgrade facts
   ansible.builtin.set_fact:
-    rancherk8s_upgrade_node_name: "{{ ansible_facts['hostname'] }}"
+    rancherk8s_upgrade_node_name: "{{ hostvars[rancherk8s_upgrade_target].ansible_facts.hostname }}"
+    rancherk8s_upgrade_install_tasks: >-
+      {{ 'install/server.yml' if hostvars[rancherk8s_upgrade_target].rancherk8s_node_type == 'server'
+         else 'install/agent.yml' }}
     # Service name: "k3s" for a k3s server, else "<type>-<node_type>".
     rancherk8s_service_name: >-
-      {{ 'k3s' if rancherk8s_type == 'k3s' and rancherk8s_node_type == 'server'
-         else rancherk8s_type + '-' + rancherk8s_node_type }}
+      {{ 'k3s' if rancherk8s_type == 'k3s' and hostvars[rancherk8s_upgrade_target].rancherk8s_node_type == 'server'
+         else rancherk8s_type + '-' + hostvars[rancherk8s_upgrade_target].rancherk8s_node_type }}
 
 - name: "Cordon and drain before upgrade: {{ rancherk8s_upgrade_node_name }}"
   kubernetes.core.k8s_drain:
@@ -28,6 +32,7 @@
   ansible.builtin.service:
     name: "{{ rancherk8s_service_name }}"
     state: restarted
+  delegate_to: "{{ rancherk8s_upgrade_target }}"
 
 - name: "Wait for Ready: {{ rancherk8s_upgrade_node_name }}"
   kubernetes.core.k8s_info:

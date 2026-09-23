@@ -38,11 +38,26 @@
   ansible.builtin.include_tasks: labels.yml
   when: labels is defined
 
-- name: "Upgrade environment to {{ rancherk8s_version_defined }}"
-  ansible.builtin.include_tasks: upgrade.yml
+- name: Upgrade servers one at a time
+  # throttle silently doesn't serialize block+include_tasks - loop from primary instead.
+  ansible.builtin.include_tasks: upgrade/node.yml
+  loop: "{{ groups['server'] }}"
+  loop_control:
+    loop_var: rancherk8s_upgrade_target
   when:
-    - rancherk8s_version_defined is version(rancherk8s_version_installed, '>')
-    - rancherk8s_allow_upgrade is true
+    - inventory_hostname == groups['server_primary'][0]
+    - hostvars[rancherk8s_upgrade_target].rancherk8s_version_defined is version(hostvars[rancherk8s_upgrade_target].rancherk8s_version_installed, '>')
+    - hostvars[rancherk8s_upgrade_target].rancherk8s_allow_upgrade
+
+- name: Upgrade agents one at a time
+  ansible.builtin.include_tasks: upgrade/node.yml
+  loop: "{{ groups['agent'] | default([]) }}"
+  loop_control:
+    loop_var: rancherk8s_upgrade_target
+  when:
+    - inventory_hostname == groups['server_primary'][0]
+    - hostvars[rancherk8s_upgrade_target].rancherk8s_version_defined is version(hostvars[rancherk8s_upgrade_target].rancherk8s_version_installed, '>')
+    - hostvars[rancherk8s_upgrade_target].rancherk8s_allow_upgrade
 
 - name: "Show API token"  # noqa no-handler
   when:
