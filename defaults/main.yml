@@ -107,8 +107,6 @@ rancherk8s_cni_gateway: true
 ## Upgrades and backups
 
 rancherk8s_allow_upgrade: true
-# rancherk8s_auto_upgrade: false
-# rancherk8s_auto_upgrade_grace_period: 45
 
 # Cordon + drain a node before upgrading it, uncordon once it reports Ready
 # again. Seconds to wait for pods to evict before the drain fails.

@@ -3,7 +3,6 @@ Table of Contents
 ------------------
 
 - [Description](#description)
-- [KNOWN ISSUES](#known-issues)
 - [High Availability](#high-availability)
 - [Install Method](#install-method)
 - [Gateway API CRDs](#gateway-api-crds)
@@ -39,13 +38,6 @@ number) before deploying. Secondary servers join one at a time, never in paralle
 etcd quorum issues.
 
 Supported OS: RHEL-family 9+ (RHEL, Rocky, AlmaLinux, ...) and Ubuntu 22.04+ LTS.
-
-KNOWN ISSUES
-------------
-
-- `rancherk8s_auto_upgrade` and `rancherk8s_auto_upgrade_grace_period` are not currently wired up
-  to any task - setting them has no effect. To upgrade, bump `rancherk8s_version` and re-run the
-  playbook; the role detects the version change on its own (see Common Operations below).
 
 High Availability
 ------------------
