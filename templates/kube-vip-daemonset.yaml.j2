@@ -27,6 +27,11 @@ spec:
       # network-bootstrap DaemonSets (kube-proxy, CNI agents, ...).
       tolerations:
         - operator: Exists
+      # Paired with the KUBERNETES_SERVICE_HOST/PORT override below: resolves the
+      # in-cluster client straight to this node's own apiserver instead of the
+      # ClusterIP, since disable-kube-proxy (for Cilium) leaves nothing to route
+      # ClusterIP traffic until Cilium itself is up - which kube-vip must come up
+      # before, to give Cilium a stable API endpoint to reach in the first place.
       hostAliases:
         - ip: 127.0.0.1
           hostnames:
@@ -44,6 +49,10 @@ spec:
                 - NET_RAW
                 - SYS_TIME
           env:
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kubernetes"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6443"
             - name: vip_arp
               value: "true"
             - name: port
