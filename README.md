@@ -169,6 +169,29 @@ all:
             - environment=prod
 ```
 
+For larger inventories, split shared cluster vars into `group_vars/<group>.yml` instead of
+inlining them under `all.vars`:
+
+```yaml
+# inventory/my-cluster.yml
+my_cluster:
+  hosts:
+    rke2-server-01:
+      ansible_host: 10.0.0.101
+    rke2-server-02:
+      ansible_host: 10.0.0.102
+    rke2-server-03:
+      ansible_host: 10.0.0.103
+```
+
+```yaml
+# inventory/group_vars/my_cluster.yml
+rancherk8s_type: 'k3s'
+rancherk8s_cluster_name: 'my-cluster'   # ~/.kube/<name>.yml instead of the primary node's hostname
+rancherk8s_api_endpoint: '10.0.0.50'
+rancherk8s_api_vip_enabled: true
+```
+
 ### Example Playbook
 ```yaml
 ---
@@ -177,6 +200,13 @@ all:
   roles:
     - rancherk8s
 ```
+
+### Rollout
+```shell
+ansible-playbook -i inventory playbook.yml -l my_cluster --vault-password-file=~/.vault_pass
+```
+
+Kubeconfig is fetched to `~/.kube/<rancherk8s_cluster_name or primary node's hostname>.yml`.
 
 ### Post-Deployment
 Retrieve the admin token for kubectl access:
