@@ -45,7 +45,7 @@ rancherk8s_api_endpoint: ''
 rancherk8s_api_vip_enabled: false
 rancherk8s_api_vip_version: 'v1.2.2'
 # NIC kube-vip binds to on every control-plane node (assumes identical naming).
-rancherk8s_api_vip_interface: "{{ hostvars[groups['server_primary'][0]].ansible_default_ipv4.interface }}"
+rancherk8s_api_vip_interface: "{{ hostvars[groups['server_primary'][0]].ansible_facts.default_ipv4.interface }}"
 
 ## Timings and resources
 
