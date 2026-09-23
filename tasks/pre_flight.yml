@@ -57,9 +57,10 @@
   ansible.builtin.include_tasks: pre_flight/groups.yml
 
 - name: Check existing and defined verisons
+  # Every node compares its own installed binary against rancherk8s_version -
+  # secondary servers and agents can be behind the primary and need their own
+  # upgrade decision in tasks/main.yml's "Upgrade environment" step.
   ansible.builtin.include_tasks: pre_flight/versions.yml
-  when:
-    - inventory_hostname in groups['server_primary']
 
 - name: Check for existing node-token
   ansible.builtin.include_tasks: pre_flight/tokens.yml
