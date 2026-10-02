@@ -1,12 +1,22 @@
 ---
+- name: Set node-token path
+  when: rancherk8s_type == 'rke2'
+  ansible.builtin.set_fact:
+    rancherk8s_node_token: "/var/lib/rancher/{{ rancherk8s_type }}/server/node-token"
+
+- name: Set node-token path
+  when: rancherk8s_type == 'k3s'
+  ansible.builtin.set_fact:
+    rancherk8s_node_token: "/var/lib/rancher/{{ rancherk8s_type }}/server/agent-token"
+
 - name: Check for existing token
   ansible.builtin.stat:
-    path: /var/lib/rancher/rke2/server/node-token
+    path: "{{ rancherk8s_node_token }}"
   register: node_token_stat
 
 - name: Read and register node-token from first server
   ansible.builtin.slurp:
-    src: /var/lib/rancher/rke2/server/node-token
+    src: "{{ rancherk8s_node_token }}"
   register: node_token
   when:
     - node_token_stat.stat.exists
