@@ -1,2 +1,6 @@
 ---
 # vars file for rke2
+
+# Wire the role-prefixed default into the special connection variable so it
+# applies for the duration of this role's tasks only.
+ansible_ssh_timeout: "{{ rancherk8s_ssh_timeout }}"
