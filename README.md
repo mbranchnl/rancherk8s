@@ -140,6 +140,7 @@ Role Variables
 | Variable                             | Required | Default         | Description                                                         |
 |--------------------------------------|----------|-----------------|---------------------------------------------------------------------|
 | rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set  |
+| rancherk8s_upgrade_pause_seconds     | no       | 0               | Fixed pause after each node upgrade, letting pods settle before the next node. 0 disables it |
 | rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                    |
 | rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                                 |
 | rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket                 |
@@ -392,6 +393,7 @@ kubectl get secret sa-admin-token -o jsonpath='{.data.*}' -n kube-system | base6
 2. Upgrading the cluster:
    - Update rancherk8s_version in your variables
    - Run playbook - the role detects the version change and upgrades nodes on its own
+   - The version check prefers the live kubelet version from the Kubernetes API over the binary on disk, so a run interrupted between installing the new binary and restarting the service self-heals on the next run instead of getting stuck
 
 3. Adding custom labels:
    - Add labels in inventory as shown above

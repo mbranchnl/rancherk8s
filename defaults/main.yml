@@ -108,6 +108,9 @@ rancherk8s_cni_gateway: true
 
 rancherk8s_allow_upgrade: true
 
+# Fixed pause between upgrading nodes, giving pods time to reschedule/settle. 0 disables it.
+rancherk8s_upgrade_pause_seconds: 0
+
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"
 

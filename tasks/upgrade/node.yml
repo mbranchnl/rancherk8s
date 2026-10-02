@@ -39,3 +39,8 @@
   retries: 60
   delay: 5
   delegate_to: localhost
+
+- name: "Pause to let pods settle before the next node: {{ rancherk8s_upgrade_node_name }}"
+  ansible.builtin.pause:
+    seconds: "{{ rancherk8s_upgrade_pause_seconds }}"
+  when: rancherk8s_upgrade_pause_seconds | int > 0
