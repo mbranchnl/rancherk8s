@@ -3,7 +3,7 @@
   ansible.builtin.set_fact:
     rancherk8s_os_supported: "{{ is_rhel or is_ubuntu }}"
   vars:
-    major: "{{ ansible_distribution_major_version | int }}"
+    major: "{{ ansible_facts['distribution_major_version'] | int }}"
     is_rhel: "{{ ansible_facts['os_family'] == 'RedHat' and major >= 9 }}"
     is_ubuntu: "{{ ansible_facts['distribution'] == 'Ubuntu' and major >= 22 }}"
 
@@ -11,7 +11,7 @@
   ansible.builtin.debug:
     msg: >-
       {{ ansible_facts['distribution'] }}
-      {{ ansible_distribution_major_version }} is not supported - this role
+      {{ ansible_facts['distribution_major_version'] }} is not supported - this role
       requires RHEL-family 9+ or Ubuntu 22.04+ LTS.
   when: not rancherk8s_os_supported
 
