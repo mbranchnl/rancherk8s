@@ -1,4 +1,9 @@
 ---
+# rancherk8s_active_node: real target node - inventory_hostname stays on the driver when delegated.
+- name: Resolve the node actually being acted on
+  ansible.builtin.set_fact:
+    rancherk8s_active_node: "{{ rancherk8s_upgrade_target | default(inventory_hostname) }}"
+
 - name: 'Create /etc/rancher/{{ rancherk8s_type }}'
   ansible.builtin.file:
     state: directory
