@@ -140,7 +140,6 @@ Role Variables
 | Variable                             | Required | Default         | Description                                                         |
 |--------------------------------------|----------|-----------------|---------------------------------------------------------------------|
 | rancherk8s_allow_upgrade             | no       | true            | Allow the role to run the upgrade path when a newer version is set  |
-| rancherk8s_upgrade_drain_timeout     | no       | 300             | Seconds to wait for a node to drain before an upgrade fails         |
 | rancherk8s_backup_schedule           | no       | "0 8,20 * * *"  | Cron schedule for etcd snapshots                                    |
 | rancherk8s_backup_retention          | no       | "14"            | Number of local snapshots to retain                                 |
 | rancherk8s_backup_s3_enabled         | no       | false           | Also ship etcd snapshots to an S3-compatible bucket                 |
@@ -392,7 +391,7 @@ kubectl get secret sa-admin-token -o jsonpath='{.data.*}' -n kube-system | base6
 
 2. Upgrading the cluster:
    - Update rancherk8s_version in your variables
-   - Run playbook - the role detects the version change and drains/upgrades nodes on its own
+   - Run playbook - the role detects the version change and upgrades nodes on its own
 
 3. Adding custom labels:
    - Add labels in inventory as shown above

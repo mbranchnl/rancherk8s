@@ -23,6 +23,6 @@
 
 - name: Store node-token
   ansible.builtin.set_fact:
-    token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+    rancherk8s_token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
   when:
     - node_token_stat.stat.exists

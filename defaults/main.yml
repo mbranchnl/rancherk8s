@@ -21,12 +21,6 @@ rancherk8s_fetch_kubeconfig: true
 # (~/.kube/<name>.yml). Empty falls back to the primary server's hostname.
 rancherk8s_cluster_name: ''
 
-# SSH connect timeout (seconds) for this role's tasks. Higher than Ansible's
-# own default (10s): upgrade tasks delegate back to the node being upgraded,
-# which can be briefly unreachable (reboot, cordon/drain) with no retry on a
-# plain connection failure.
-rancherk8s_ssh_timeout: 30
-
 rancherk8s_version_installed: "{{ rancherk8s_version }}"
 rancherk8s_version_defined: "{{ rancherk8s_version }}"
 rancherk8s_major_version: "{{ rancherk8s_version | regex_replace('^v(\\d+\\.\\d+).*', '\\1') }}"
@@ -113,10 +107,6 @@ rancherk8s_cni_gateway: true
 ## Upgrades and backups
 
 rancherk8s_allow_upgrade: true
-
-# Cordon + drain a node before upgrading it, uncordon once it reports Ready
-# again. Seconds to wait for pods to evict before the drain fails.
-rancherk8s_upgrade_drain_timeout: 300
 
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"
