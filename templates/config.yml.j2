@@ -42,7 +42,10 @@ cni: cilium
 {% else %}
 flannel-backend: "none"
 disable-network-policy: true
+{% if 'server_primary' in hostvars[rancherk8s_active_node].group_names %}
+{# Only the node bootstrapping a brand-new cluster gets cluster-init - secondaries join via server/token above. #}
 cluster-init: true
+{% endif %}
 {% endif %}
 disable-kube-proxy: true
 {% endif %}
