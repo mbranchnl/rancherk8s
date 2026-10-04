@@ -1,4 +1,14 @@
 ---
+# Agents have no local kubeconfig, so this always has to run on a server, not on the node itself.
+- name: "Look up the live, running version from a server's local API: {{ ansible_facts.hostname }}"  # noqa name[template]
+  ansible.builtin.command: "{{ rancherk8s_type }} kubectl get node {{ ansible_facts.hostname }} -o jsonpath='{.status.nodeInfo.kubeletVersion}'"
+  register: rancherk8s_preflight_node_status
+  delegate_to: "{{ groups['server_primary'][0] }}"
+  changed_when: false
+  failed_when: false
+  when: rancherk8s_bin.stat.exists
+
+# Fallback: node not registered in the cluster yet, or the live lookup above failed/came back empty.
 - name: "Check if {{ rancherk8s_type }} installed and register installed version"  # noqa name[template] risky-shell-pipe
   ansible.builtin.shell: |
     set -o pipefail
@@ -7,12 +17,13 @@
   changed_when: false
   when:
     - rancherk8s_bin.stat.exists
+    - rancherk8s_preflight_node_status.rc | default(1) != 0 or rancherk8s_preflight_node_status.stdout | default('') | length == 0
 
 - name: Set fact for installed and defined versions
   ansible.builtin.set_fact:
     rancherk8s_version_defined: "{{ rancherk8s_version }}"
     # Nothing installed yet this run - it's about to be installed at rancherk8s_version, so there's nothing to upgrade.
-    rancherk8s_version_installed: "{{ gathered_installed_version.stdout if rancherk8s_bin.stat.exists else rancherk8s_version }}"
+    rancherk8s_version_installed: "{{ rancherk8s_preflight_node_status.stdout if (rancherk8s_preflight_node_status.rc | default(1) == 0 and rancherk8s_preflight_node_status.stdout | default('') | length > 0) else (gathered_installed_version.stdout if rancherk8s_bin.stat.exists else rancherk8s_version) }}"
 
 - name: End play when rancherk8s_version_installed is newer than rancherk8s_version_defined
   ansible.builtin.meta: end_play

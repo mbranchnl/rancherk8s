@@ -3,7 +3,7 @@
   ansible.builtin.set_fact:
     rancherk8s_k9s_base_url: >-
       {{ 'https://github.com/derailed/k9s/releases/download/'
-         ~ rancherk8s_k9s_version if rancherk8s_k9s_version | length > 0
+         ~ rancherk8s_version_k9s if rancherk8s_version_k9s | length > 0
          else 'https://github.com/derailed/k9s/releases/latest/download' }}
 
 - name: Install k9s on RedHat-family systems

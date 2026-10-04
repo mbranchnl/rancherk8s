@@ -1,11 +1,11 @@
 ---
-# Installs rancherk8s_helm_version when set, otherwise the latest release.
+# Installs rancherk8s_version_helm when set, otherwise the latest release.
 # Uses the official get-helm-3 script, which is distro-agnostic.
 - name: Install Helm
   block:
     - name: Check if Helm is already installed
       ansible.builtin.command: helm version --short
-      register: rancherk8s_helm_version_check
+      register: rancherk8s_version_helm_check
       failed_when: false
       changed_when: false
 
@@ -16,29 +16,29 @@
         return_content: true
       register: rancherk8s_helm_latest_release
       when:
-        - rancherk8s_helm_version_check.rc != 0
-        - rancherk8s_helm_version | length == 0
+        - rancherk8s_version_helm_check.rc != 0
+        - rancherk8s_version_helm | length == 0
 
     - name: Set Helm version variable
       ansible.builtin.set_fact:
         rancherk8s_helm_target_version: >-
-          {{ rancherk8s_helm_version if rancherk8s_helm_version | length > 0
+          {{ rancherk8s_version_helm if rancherk8s_version_helm | length > 0
              else rancherk8s_helm_latest_release.json.tag_name }}
-      when: rancherk8s_helm_version_check.rc != 0
+      when: rancherk8s_version_helm_check.rc != 0
 
     - name: Create temporary directory for Helm installation
       ansible.builtin.tempfile:
         state: directory
         suffix: helm
       register: rancherk8s_helm_temp_dir
-      when: rancherk8s_helm_version_check.rc != 0
+      when: rancherk8s_version_helm_check.rc != 0
 
     - name: Download Helm installation script
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         dest: "{{ rancherk8s_helm_temp_dir.path }}/get_helm.sh"
         mode: '0755'
-      when: rancherk8s_helm_version_check.rc != 0
+      when: rancherk8s_version_helm_check.rc != 0
 
     - name: Install Helm using official script # noqa no-changed-when
       ansible.builtin.command: "{{ rancherk8s_helm_temp_dir.path }}/get_helm.sh"
@@ -46,13 +46,13 @@
         DESIRED_VERSION: "{{ rancherk8s_helm_target_version }}"
         HELM_INSTALL_DIR: "/usr/local/bin"
       become: true
-      when: rancherk8s_helm_version_check.rc != 0
+      when: rancherk8s_version_helm_check.rc != 0
 
     - name: Clean up temporary directory
       ansible.builtin.file:
         path: "{{ rancherk8s_helm_temp_dir.path }}"
         state: absent
-      when: rancherk8s_helm_version_check.rc != 0
+      when: rancherk8s_version_helm_check.rc != 0
 
     - name: Verify Helm installation
       ansible.builtin.command: helm version --short

@@ -3,12 +3,12 @@
 
 # versions
 rancherk8s_version: 'v1.34.1+rke2r1'
-rancherk8s_cni_cilium_version: '1.18.7'
+rancherk8s_version_cni_cilium: '1.18.7'
 
-rancherk8s_helm_version: 'v3.21.4'
+rancherk8s_version_helm: 'v3.21.4'
 
 # k9s version to install (e.g. 'v0.40.5'). Leave empty to install the latest release.
-rancherk8s_k9s_version: 'v0.40.5'
+rancherk8s_version_k9s: 'v0.40.5'
 
 rancherk8s_cni_cilium_autoupgrade: false
 
@@ -104,12 +104,14 @@ rancherk8s_cni_gateway: true
 
 # rancherk8s_dualstack: false # allow ipv6
 
-## Upgrades and backups
+## Upgrades
 
 rancherk8s_allow_upgrade: true
 
 # Fixed pause between upgrading nodes, giving pods time to reschedule/settle. 0 disables it.
-rancherk8s_upgrade_pause_seconds: 0
+rancherk8s_upgrade_pause_seconds: 60
+
+## Backups
 
 rancherk8s_backup_schedule: "0 8,20 * * *"
 rancherk8s_backup_retention: "14"

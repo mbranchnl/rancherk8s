@@ -121,7 +121,7 @@ Role Variables
 | Variable                       | Required | Default | Description                                                 |
 |----------------------------------|----------|---------|----------------------------------------------------------------|
 | rancherk8s_cni                   | no       | cilium  | CNI plugin to use (e.g., 'cilium', 'canal')                     |
-| rancherk8s_cni_cilium_version     | no       | 1.18.7  | Cilium chart version                                            |
+| rancherk8s_version_cni_cilium     | no       | 1.18.7  | Cilium chart version                                            |
 | rancherk8s_cni_cilium_autoupgrade | no       | false   | Auto-detect and use the latest Cilium version instead            |
 | rancherk8s_cni_l2_enabled         | no       | true    | Enable Cilium L2 announcements                                   |
 | rancherk8s_cni_operator_replicas  | no       | 1       | Cilium operator replica count                                    |
@@ -132,8 +132,8 @@ Role Variables
 | Variable                | Required | Default  | Description                                                  |
 |----------------------------|----------|----------|------------------------------------------------------------------|
 | rancherk8s_install_tools   | no       | true     | Install additional tools (Flux, Helm, k9s, Cilium CLI)           |
-| rancherk8s_helm_version    | no       | ''       | Helm version to install. Empty installs the latest release       |
-| rancherk8s_k9s_version     | no       | v0.40.5  | k9s version to install. Empty installs the latest release        |
+| rancherk8s_version_helm    | no       | ''       | Helm version to install. Empty installs the latest release       |
+| rancherk8s_version_k9s     | no       | v0.40.5  | k9s version to install. Empty installs the latest release        |
 
 ### Upgrades & Backups
 
