@@ -1,6 +1,6 @@
 ---
 - name: Kubectl get node info and current taints
-  ansible.builtin.command: "kubectl get nodes {{ ansible_hostname }} -o json"
+  ansible.builtin.command: "kubectl get nodes {{ ansible_facts['hostname'] }} -o json"
   register: kubectl_json
   changed_when: false
 
@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     unadded_taint: "{{ (defined_taint_keys | difference(current_taint_keys)) | list }}"
 
-- name: "Add taints to {{ ansible_hostname }}"  # noqa no-changed-when
-  ansible.builtin.command: "kubectl taint nodes {{ ansible_hostname }} {{ item }}"
+- name: "Add taints to {{ ansible_facts['hostname'] }}"  # noqa no-changed-when
+  ansible.builtin.command: "kubectl taint nodes {{ ansible_facts['hostname'] }} {{ item }}"
   when: (item | regex_replace('=.*', '') | regex_replace(':.*', '')) in unadded_taint
   loop: "{{ taints }}"

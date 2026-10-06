@@ -1,6 +1,6 @@
 ---
 - name: Kubectl get node info and current labels
-  ansible.builtin.command: "kubectl get nodes {{ ansible_hostname }} -o json"
+  ansible.builtin.command: "kubectl get nodes {{ ansible_facts['hostname'] }} -o json"
   register: kubectl_json
   changed_when: false
 
@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     unadded_tag: "{{ (defined_labels | difference(current_labels)) | list }}"
 
-- name: "Add labels to {{ ansible_hostname }}"  # noqa no-changed-when
-  ansible.builtin.command: "kubectl label nodes {{ ansible_hostname }} {{ item }}"
+- name: "Add labels to {{ ansible_facts['hostname'] }}"  # noqa no-changed-when
+  ansible.builtin.command: "kubectl label nodes {{ ansible_facts['hostname'] }} {{ item }}"
   when: (item | regex_replace('=.*', '')) in unadded_tag
   loop: "{{ labels }}"

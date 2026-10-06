@@ -1,4 +1,4 @@
-{% set rancherk8s_api_join_host = rancherk8s_api_endpoint if rancherk8s_api_endpoint else hostvars[groups['server_primary'][0]]['ansible_default_ipv4']['address'] %}
+{% set rancherk8s_api_join_host = rancherk8s_api_endpoint if rancherk8s_api_endpoint else hostvars[groups['server_primary'][0]]['ansible_facts']['default_ipv4']['address'] %}
 {# rancherk8s_active_node may differ from inventory_hostname/group_names when delegated. #}
 {% if 'server_primary' not in hostvars[rancherk8s_active_node].group_names %}
 

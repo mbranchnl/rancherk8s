@@ -63,6 +63,13 @@
     - hostvars[rancherk8s_upgrade_target].rancherk8s_version_defined is version(hostvars[rancherk8s_upgrade_target].rancherk8s_version_installed, '>')
     - hostvars[rancherk8s_upgrade_target].rancherk8s_allow_upgrade
 
+- name: Reconcile config on secondary servers one at a time
+  ansible.builtin.include_tasks: configure_secondary.yml
+  loop: "{{ groups['server_secondary'] | default([]) }}"
+  loop_control:
+    loop_var: rancherk8s_configure_target
+  when: inventory_hostname == groups['server_primary'][0]
+
 - name: "Show API token"  # noqa no-handler
   when:
     - "'server_primary' in group_names"
