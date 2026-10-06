@@ -1,0 +1,23 @@
+---
+- name: Kubectl get node info and current taints
+  ansible.builtin.command: "kubectl get nodes {{ ansible_hostname }} -o json"
+  register: kubectl_json
+  changed_when: false
+
+- name: Create list of current taint keys and set as fact
+  ansible.builtin.set_fact:
+    current_taint_keys: "{{ (kubectl_json.stdout | from_json).spec.taints | default([]) | map(attribute='key') | list }}"
+
+- name: Set keys from defined taints
+  ansible.builtin.set_fact:
+    defined_taint_keys: "{{ defined_taint_keys | default([]) + [item | regex_replace('=.*', '') | regex_replace(':.*', '')] }}"
+  loop: "{{ taints }}"
+
+- name: Create list of taints that need to be added
+  ansible.builtin.set_fact:
+    unadded_taint: "{{ (defined_taint_keys | difference(current_taint_keys)) | list }}"
+
+- name: "Add taints to {{ ansible_hostname }}"  # noqa no-changed-when
+  ansible.builtin.command: "kubectl taint nodes {{ ansible_hostname }} {{ item }}"
+  when: (item | regex_replace('=.*', '') | regex_replace(':.*', '')) in unadded_taint
+  loop: "{{ taints }}"
