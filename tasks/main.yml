@@ -38,6 +38,10 @@
   ansible.builtin.include_tasks: labels.yml
   when: labels is defined
 
+- name: Setup initial taints
+  ansible.builtin.include_tasks: taints.yml
+  when: taints is defined
+
 - name: Upgrade servers one at a time
   # throttle silently doesn't serialize block+include_tasks - loop from primary instead.
   ansible.builtin.include_tasks: upgrade/node.yml

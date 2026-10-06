@@ -29,7 +29,6 @@ node-taint:
   - "node-role.kubernetes.io/control-plane:NoSchedule"
 {% endif %}
 {% endif %}
-{% endif %}
 
 write-kubeconfig-mode: 644
 {% if rancherk8s_cni == "cilium" %}
@@ -88,5 +87,6 @@ control-plane-resource-requests:
 {% for item in rancherk8s_limited_resources %}
   - {{ item }}
 {% endfor %}
+{% endif %}
 {% endif %}
 {% endif %}

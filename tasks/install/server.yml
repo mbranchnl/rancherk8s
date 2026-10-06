@@ -44,6 +44,30 @@
          else rancherk8s_type + '-' + hostvars[rancherk8s_active_node].rancherk8s_node_type }}
   delegate_to: "{{ rancherk8s_active_node }}"
 
+- name: Wait for node-token to exist after first start
+  # Fresh bootstrap: pre_flight/tokens.yml ran before this server existed, so
+  # rancherk8s_token was never cached - agents need it from this host's facts.
+  ansible.builtin.wait_for:
+    path: '{{ rancherk8s_node_token }}'
+    timeout: 60
+  when:
+    - rancherk8s_active_node in groups['server_primary']
+  delegate_to: "{{ rancherk8s_active_node }}"
+
+- name: Read node-token so agents can join without a separate pre-flight pass
+  ansible.builtin.slurp:
+    src: '{{ rancherk8s_node_token }}'
+  register: node_token
+  when:
+    - rancherk8s_active_node in groups['server_primary']
+  delegate_to: "{{ rancherk8s_active_node }}"
+
+- name: Cache the join token for this run
+  ansible.builtin.set_fact:
+    rancherk8s_token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+  when:
+    - rancherk8s_active_node in groups['server_primary']
+
 - name: Wait for kubernetes API to become available on server
   ansible.builtin.wait_for:
     port: 6443

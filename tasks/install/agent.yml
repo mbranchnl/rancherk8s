@@ -23,6 +23,12 @@
     cmd: "set -a && . {{ rancherk8s_artifact_path }}/install.env && set +a && {{ rancherk8s_artifact_path }}/install.sh"
   delegate_to: "{{ rancherk8s_active_node }}"
 
+- name: Fetch the cluster join token from the primary server
+  # Agents never run pre_flight/tokens.yml themselves (that's server_primary-only),
+  # so they need their own copy of the token cached by install/server.yml.
+  ansible.builtin.set_fact:
+    rancherk8s_token: "{{ hostvars[groups['server_primary'][0]].rancherk8s_token }}"
+
 - name: 'Set config-file for {{ rancherk8s_type }}'
   ansible.builtin.template:
     src: config.yml.j2

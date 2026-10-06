@@ -396,5 +396,14 @@ kubectl get secret sa-admin-token -o jsonpath='{.data.*}' -n kube-system | base6
    - The version check prefers the live kubelet version from the Kubernetes API over the binary on disk, so a run interrupted between installing the new binary and restarting the service self-heals on the next run instead of getting stuck
 
 3. Adding custom labels:
-   - Add labels in inventory as shown above
+   - Add a `labels` list to the host/group in inventory, e.g. `labels: ["disktype=ssd"]`
    - Run playbook to apply changes
+
+4. Adding custom taints:
+   - Add a `taints` list to the host/group in inventory, using `kubectl taint`
+     syntax: `taints: ["dedicated=gpu:NoSchedule"]`
+   - Run playbook to apply changes
+   - Separate from `rancherk8s_server_schedulable` (see scenario 4 above), which
+     is the supported way to dedicate control-planes - RKE2's equivalent
+     (`disable-scheduling`) is a config flag, not a taint, so it can't be
+     expressed through this generic list
