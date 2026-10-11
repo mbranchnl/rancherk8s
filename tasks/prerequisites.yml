@@ -27,8 +27,6 @@
   ansible.builtin.set_fact:
     ansible_python_interpreter: "{{ rancherk8s_venv_path }}/bin/python3"
 
-# - ansible.builtin.meta: end_play
-
 - name: Add /usr/local/bin to sudo secure_path
   ansible.builtin.lineinfile:
     line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
