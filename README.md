@@ -407,3 +407,47 @@ kubectl get secret sa-admin-token -o jsonpath='{.data.*}' -n kube-system | base6
      is the supported way to dedicate control-planes - RKE2's equivalent
      (`disable-scheduling`) is a config flag, not a taint, so it can't be
      expressed through this generic list
+
+5. Removing a worker node:
+   - Cordon and drain the node so workloads are rescheduled gracefully:
+     `kubectl cordon <node>`
+     `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`
+   - Check for workloads that cannot move: pods bound to a local-path PV on this
+     node, storage replicas (e.g. Longhorn) and PodDisruptionBudgets blocking the drain
+   - Remove the node object from the cluster: `kubectl delete node <node>`
+   - Remove the host from the inventory under [agent], otherwise the next
+     playbook run will reinstall it
+   - Stop and remove the nodes
+
+6. Removing a control-plane node:
+   - Never remove more than one control-plane at a time. With embedded etcd,
+     quorum requires a majority of the members registered in etcd, not of the
+     nodes that are actually online. A node that is powered off without being
+     removed still counts towards the quorum size
+   - Avoid ending up with an even number of control-planes: 2 tolerates zero
+     failures, so it is less resilient than 1. When scaling down from 3 to 1,
+     the 2-node state is unavoidable - keep that window as short as possible
+   - Take an etcd snapshot first and copy it off the node:
+     - K3s:  `k3s etcd-snapshot save`
+     - RKE2: `rke2 etcd-snapshot save`
+   - Make sure nothing points at the node being removed: the `server:` address
+     used by agents and other servers, a VIP or DNS record, TLS SANs and kubeconfigs.
+     Update these first if needed
+   - Drain the node: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`
+   - Delete the node object while the node is still running:
+     `kubectl delete node <node>`
+     K3s and RKE2 remove the corresponding etcd member automatically when the
+     node object is deleted
+   - Verify the etcd member is actually gone before touching the next node.
+     The member list should no longer contain the node:
+     - RKE2: `kubectl -n kube-system exec etcd-<remaining-node> -- etcdctl \
+         --cacert /var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
+         --cert /var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
+         --key /var/lib/rancher/rke2/server/tls/etcd/server-client.key \
+         member list`
+     - K3s: use `etcdctl` with the certificates in /var/lib/rancher/k3s/server/tls/etcd/
+       (etcdctl is not bundled with K3s), or check the k3s logs on a remaining
+       server for the member removal
+   - Remove the host from the inventory server group, and update any variable
+     holding the registration/server address if it pointed to this node
+   - Run the playbook to bring the remaining configuration in line
