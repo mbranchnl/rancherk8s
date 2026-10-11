@@ -72,3 +72,15 @@
           regular workloads. Add agent nodes or set
           rancherk8s_server_schedulable: true on at least one server.
       run_once: true
+
+    - name: Warn when a server node is still schedulable despite agent nodes being present
+      ansible.builtin.debug:
+        msg: >-
+          Agent nodes are present but rancherk8s_server_schedulable is still
+          true on at least one server - regular workloads may end up on the
+          control plane. Set rancherk8s_server_schedulable: false on the
+          server nodes if that's not intended.
+      when:
+        - groups['agent'] | default([]) | length > 0
+        - groups['server'] | map('extract', hostvars, 'rancherk8s_server_schedulable') | map('default', true) | select | list | length > 0
+      run_once: true
