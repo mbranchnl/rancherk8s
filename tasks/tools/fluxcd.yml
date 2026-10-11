@@ -12,17 +12,21 @@
   register: rancherk8s_tools_flux_state
 
 - name: Check current installed version of flux  # noqa risky-shell-pipe
-  ansible.builtin.shell: |
-    set -o pipefail
-    flux --version | awk '{ print $3}'
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      flux --version | awk '{ print $3}'
+    executable: /bin/bash
   register: rancherk8s_tools_flux_gathered_version2
   changed_when: false
   when: rancherk8s_tools_flux_state.stat.exists
 
 - name: Install flux  # noqa command-instead-of-module no-changed-when
-  ansible.builtin.shell: |
-    set -o pipefail
-    curl -s https://fluxcd.io/install.sh | bash
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      curl -s https://fluxcd.io/install.sh | bash
+    executable: /bin/bash
   vars:
     rancherk8s_flux_gathered_version: "{{ rancherk8s_tools_flux_gathered_version2.stdout }}"
     rancherk8s_flux_latest_version: "{{ rancherk8s_tools_flux_latest_version.json.tag_name | replace('v', '') }}"
