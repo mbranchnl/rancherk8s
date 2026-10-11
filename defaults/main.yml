@@ -27,6 +27,10 @@ rancherk8s_major_version: "{{ rancherk8s_version | regex_replace('^v(\\d+\\.\\d+
 
 rancherk8s_artifact_path: /tmp/
 
+# Dedicated venv for kubernetes.core's Python deps (openshift/kubernetes/
+# oauthlib) - required on Ubuntu/Debian 12+ (PEP 668 externally-managed-env).
+rancherk8s_venv_path: /opt/rancherk8s/venv
+
 ## Pre-flight resource requirements
 rancherk8s_min_cpu_cores: 2
 rancherk8s_min_memory_mb: 4096

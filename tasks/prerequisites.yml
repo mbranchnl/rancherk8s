@@ -6,14 +6,28 @@
       - python3-pip
     state: present
 
-- name: Install pip packages  # noqa package-latest
+- name: Install Python venv support
+  ansible.builtin.package:
+    name: python3-venv
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install Python packages for kubernetes.core into a dedicated venv  # noqa package-latest
   ansible.builtin.pip:
     name: "{{ item }}"
     state: latest
+    virtualenv: "{{ rancherk8s_venv_path }}"
+    virtualenv_command: "{{ ansible_facts['python']['executable'] }} -m venv"
   loop:
     - openshift
     - kubernetes
     - oauthlib
+
+- name: Use the dedicated venv's interpreter for subsequent tasks on this host
+  ansible.builtin.set_fact:
+    ansible_python_interpreter: "{{ rancherk8s_venv_path }}/bin/python3"
+
+# - ansible.builtin.meta: end_play
 
 - name: Add /usr/local/bin to sudo secure_path
   ansible.builtin.lineinfile:

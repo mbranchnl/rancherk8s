@@ -39,6 +39,13 @@ etcd quorum issues.
 
 Supported OS: RHEL-family 9+ (RHEL, Rocky, AlmaLinux, ...) and Ubuntu 22.04+ LTS.
 
+> **Warning:** `prerequisites.yml` sets `ansible_python_interpreter` to a
+> dedicated venv (`rancherk8s_venv_path`) as a host fact. It stays in effect
+> for every task after this role on the same host in the same play.
+> Combining with another role in the same run? That role runs under this
+> venv unless it resets `ansible_python_interpreter` itself - give it its
+> own dedicated venv instead of reusing this one.
+
 High Availability
 ------------------
 
